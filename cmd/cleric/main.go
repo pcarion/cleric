@@ -63,7 +63,10 @@ func main() {
 		}),
 	)
 
-	buttons := container.New(layout.NewGridLayout(3),
+	buttons := container.New(layout.NewGridLayout(4),
+		widget.NewButton("Add new MCPserver", func() {
+			mcpServersList.AddMcpServer(myWindow)
+		}),
 		widget.NewButton("Save", func() {
 			mcpServersList.SaveMcpServers()
 		}),

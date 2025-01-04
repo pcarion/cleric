@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/pcarion/cleric/pkg/configuration"
@@ -76,4 +77,39 @@ func (l *MCPServersList) RevertMcpServers() {
 		l.data.Append(server)
 	}
 	l.list.Refresh()
+}
+
+func (l *MCPServersList) AddMcpServer(window fyne.Window) {
+	nameEntry := widget.NewEntry()
+	descEntry := widget.NewMultiLineEntry()
+	cmdEntry := widget.NewEntry()
+	argsEntry := widget.NewEntry()
+
+	dialog := dialog.NewForm(
+		"Add MCP Server",
+		"Add",
+		"Cancel",
+		[]*widget.FormItem{
+			widget.NewFormItem("Name", nameEntry),
+			widget.NewFormItem("Description", descEntry),
+			widget.NewFormItem("Command", cmdEntry),
+			widget.NewFormItem("Arguments", argsEntry),
+		},
+		func(confirm bool) {
+			if confirm {
+				// newServer := &configuration.McpServerDescription{
+				// 	Name:        nameEntry.Text,
+				// 	Description: descEntry.Text,
+				// 	Command:     cmdEntry.Text,
+				// 	Arguments:   argsEntry.Text,
+				// }
+				// l.mcpServers = append(l.mcpServers, newServer)
+				// l.data.Append(newServer)
+				// l.SaveMcpServers()
+			}
+		},
+		window,
+	)
+	dialog.Resize(fyne.NewSize(400, 300))
+	dialog.Show()
 }
