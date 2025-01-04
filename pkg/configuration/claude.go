@@ -1,4 +1,4 @@
-package claude
+package configuration
 
 import (
 	"encoding/json"
@@ -8,24 +8,13 @@ import (
 	"runtime"
 )
 
-type McpServerConfiguration struct {
-	Command string            `json:"command"`
-	Args    []string          `json:"args"`
-	Env     map[string]string `json:"env"`
-}
-
-type McpServerDescription struct {
-	Name          string
-	Configuration McpServerConfiguration
-}
-
 type ClaudeDesktopConfig struct {
 	Path string
 }
 
 func NewClaudeDesktopConfig() *ClaudeDesktopConfig {
 	return &ClaudeDesktopConfig{
-		Path: getPath(),
+		Path: getClaudeDesktopConfigPath(),
 	}
 }
 
@@ -98,11 +87,46 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 	return mcpServers, nil
 }
 
-func getPath() string {
+func (c *ClaudeDesktopConfig) SaveMcpServers(servers []*McpServerDescription) {
+	file, err := os.Create(c.Path)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create claude config file at %s: %v", c.Path, err))
+	}
+	defer file.Close()
+	// we encode the config in a format that is easy to read
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(servers)
+}
+
+func getClaudeDesktopConfigPath() string {
 	homeDir, _ := os.UserHomeDir()
+	path := ""
 
 	if runtime.GOOS == "windows" {
-		return filepath.Join(homeDir, "AppData", "Roaming", "Claude", "claude_desktop_config.json")
+		path = filepath.Join(homeDir, "AppData", "Roaming", "Claude", "claude_desktop_config.json")
+	} else {
+		path = filepath.Join(homeDir, "Library", "Application Support", "Claude", "claude_desktop_config.json")
 	}
-	return filepath.Join(homeDir, "Library", "Application Support", "Claude", "claude_desktop_config.json")
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// we create an empty config
+		emptyConfig := make(map[string]interface{})
+		// we write the empty config in path
+		emptyConfig["mcpServers"] = make(map[string]interface{})
+		file, err := os.Create(path)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to create claude config file at %s: %v", path, err))
+		}
+		defer file.Close()
+
+		// json marshaller to write the empty config in a format that is easy to read
+
+		encoder := json.NewEncoder(file)
+		encoder.SetIndent("", "  ")
+		encoder.Encode(emptyConfig)
+
+		fmt.Printf("Created empty claude config file at %s with content %v\n", path, emptyConfig)
+	}
+	return path
 }

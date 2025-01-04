@@ -2,7 +2,6 @@ package main
 
 import (
 	"image/color"
-	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -11,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pcarion/cleric/cmd/cleric/ui"
-	"github.com/pcarion/cleric/pkg/claude"
+	"github.com/pcarion/cleric/pkg/configuration"
 )
 
 type forcedVariantCustomTheme struct {
@@ -54,11 +53,8 @@ func main() {
 	// Center the window on screen
 	myWindow.CenterOnScreen()
 
-	claudeConfig := claude.NewClaudeDesktopConfig()
-	mcpServers, err := claudeConfig.LoadMcpServers()
-	if err != nil {
-		log.Fatalf("Failed to load mcp servers: %v", err)
-	}
+	config := configuration.LoadConfiguration()
+	mcpServers := config.LoadMcpServers()
 	list := ui.NewMcpServersList(mcpServers)
 
 	themes := container.NewGridWithColumns(2,
@@ -71,8 +67,13 @@ func main() {
 	)
 
 	buttons := container.New(layout.NewGridLayout(3),
-		widget.NewButton("Save", func() {}),
-		widget.NewButton("Cancel", func() {}),
+		widget.NewButton("Save", func() {
+			config.SaveMcpServers(mcpServers)
+		}),
+		widget.NewButton("Revert", func() {
+			mcpServers = config.LoadMcpServers()
+			list = ui.NewMcpServersList(mcpServers)
+		}),
 		themes,
 	)
 

@@ -1,17 +1,25 @@
 package ui
 
 import (
+	"log"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
-	"github.com/pcarion/cleric/pkg/claude"
+
+	"github.com/pcarion/cleric/pkg/configuration"
 )
 
-func NewMcpServersList(mcpServers []*claude.McpServerDescription) *widget.List {
-	list := widget.NewList(
-		func() int {
-			return len(mcpServers)
-		},
+func NewMcpServersList(mcpServers []*configuration.McpServerDescription) *widget.List {
+	// Create a binding data list
+	data := binding.NewUntypedList()
+	for _, server := range mcpServers {
+		data.Append(server)
+	}
+
+	list := widget.NewListWithData(
+		data,
 		func() fyne.CanvasObject {
 			check := widget.NewCheck("", func(bool) {})
 			return container.NewBorder(
@@ -20,11 +28,15 @@ func NewMcpServersList(mcpServers []*claude.McpServerDescription) *widget.List {
 				check,
 			)
 		},
-		func(i widget.ListItemID, o fyne.CanvasObject) {
+		func(di binding.DataItem, o fyne.CanvasObject) {
+			server, err := di.(binding.Untyped).Get()
+			if err != nil {
+				log.Fatalf("Failed to get server: %v", err)
+			}
+			mcpServer := server.(*configuration.McpServerDescription)
 			cont := o.(*fyne.Container)
 			label := cont.Objects[0].(*widget.Label)
-
-			label.SetText(mcpServers[i].Name)
+			label.SetText(mcpServer.Name)
 		})
 
 	return list
