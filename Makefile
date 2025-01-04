@@ -1,6 +1,6 @@
 # Go parameters
 BINARY_NAME=cleric
-MAIN_PACKAGE=cmd/cleric/main.go
+MAIN_PACKAGE=cmd/cleric/*.go
 BUILD_DIR=build
 
 # Build commands
