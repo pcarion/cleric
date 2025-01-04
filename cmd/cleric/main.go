@@ -10,7 +10,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pcarion/cleric/cmd/cleric/ui"
-	"github.com/pcarion/cleric/pkg/configuration"
 )
 
 type forcedVariantCustomTheme struct {
@@ -53,9 +52,7 @@ func main() {
 	// Center the window on screen
 	myWindow.CenterOnScreen()
 
-	config := configuration.LoadConfiguration()
-	mcpServers := config.LoadMcpServers()
-	list := ui.NewMcpServersList(mcpServers)
+	mcpServersList := ui.NewMcpServersList()
 
 	themes := container.NewGridWithColumns(2,
 		widget.NewButton("Dark", func() {
@@ -68,16 +65,15 @@ func main() {
 
 	buttons := container.New(layout.NewGridLayout(3),
 		widget.NewButton("Save", func() {
-			config.SaveMcpServers(mcpServers)
+			mcpServersList.SaveMcpServers()
 		}),
 		widget.NewButton("Revert", func() {
-			mcpServers = config.LoadMcpServers()
-			list = ui.NewMcpServersList(mcpServers)
+			mcpServersList.RevertMcpServers()
 		}),
 		themes,
 	)
 
-	content := container.NewBorder(nil, buttons, nil, nil, list)
+	content := container.NewBorder(nil, buttons, nil, nil, mcpServersList.GetList())
 
 	myWindow.SetContent(content)
 	myWindow.ShowAndRun()

@@ -88,15 +88,47 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 }
 
 func (c *ClaudeDesktopConfig) SaveMcpServers(servers []*McpServerDescription) {
+	// we read the current content of the file
+	content, err := os.ReadFile(c.Path)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to read claude config file at %s: %v", c.Path, err))
+	}
+	// we decode the content as a map
+	var contentMap map[string]interface{}
+	err = json.Unmarshal(content, &contentMap)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to unmarshal claude config file at %s: %v", c.Path, err))
+	}
+	// we update the contentMap with the new servers
+	mcpServersMap := make(map[string]interface{})
+	for _, server := range servers {
+		if server.InConfiguration {
+			// Convert Configuration struct to map
+			serverConfig := map[string]interface{}{
+				"command": server.Configuration.Command,
+				"args":    server.Configuration.Args,
+				"env":     server.Configuration.Env,
+			}
+			mcpServersMap[server.Name] = serverConfig
+		}
+	}
+	// we update the contentMap with the new mcpServersMap
+	contentMap["mcpServers"] = mcpServersMap
+	// we encode the contentMap as a json object
+	// we use the json marshaller to write the contentMap in a format that is easy to read
 	file, err := os.Create(c.Path)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create claude config file at %s: %v", c.Path, err))
 	}
 	defer file.Close()
-	// we encode the config in a format that is easy to read
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	encoder.Encode(servers)
+	encoder.Encode(contentMap)
+
+	err = os.WriteFile(c.Path, content, 0644)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to write claude config file at %s: %v", c.Path, err))
+	}
 }
 
 func getClaudeDesktopConfigPath() string {
