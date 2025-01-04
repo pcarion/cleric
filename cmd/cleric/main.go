@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -9,9 +10,9 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/pcarion/cleric/cmd/cleric/ui"
+	"github.com/pcarion/cleric/pkg/claude"
 )
-
-var data = []string{"a", "string", "list"}
 
 type forcedVariantCustomTheme struct {
 	fyne.Theme
@@ -42,7 +43,7 @@ func (t *forcedVariantCustomTheme) Variant() fyne.ThemeVariant {
 func main() {
 	myApp := app.New()
 	myApp.Settings().SetTheme(&forcedVariantCustomTheme{Theme: theme.DefaultTheme(), variant: theme.VariantDark})
-	myWindow := myApp.NewWindow("List Widget")
+	myWindow := myApp.NewWindow("Claude Mcp Servers")
 
 	// Get window size and calculate desired width
 	windowWidth := float32(800) // default reasonable width
@@ -53,24 +54,12 @@ func main() {
 	// Center the window on screen
 	myWindow.CenterOnScreen()
 
-	list := widget.NewList(
-		func() int {
-			return len(data)
-		},
-		func() fyne.CanvasObject {
-			check := widget.NewCheck("", func(bool) {})
-			return container.NewBorder(
-				nil, nil,
-				widget.NewLabel("template"),
-				check,
-			)
-		},
-		func(i widget.ListItemID, o fyne.CanvasObject) {
-			cont := o.(*fyne.Container)
-			label := cont.Objects[0].(*widget.Label)
-
-			label.SetText(data[i])
-		})
+	claudeConfig := claude.NewClaudeDesktopConfig()
+	mcpServers, err := claudeConfig.LoadMcpServers()
+	if err != nil {
+		log.Fatalf("Failed to load mcp servers: %v", err)
+	}
+	list := ui.NewMcpServersList(mcpServers)
 
 	themes := container.NewGridWithColumns(2,
 		widget.NewButton("Dark", func() {
