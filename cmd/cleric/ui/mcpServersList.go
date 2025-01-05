@@ -46,18 +46,19 @@ func (l *MCPServersList) GetList() *widget.List {
 	l.list = widget.NewListWithData(
 		l.data,
 		func() fyne.CanvasObject {
-			check := widget.NewCheck("xyz?", func(checked bool) {
-				fmt.Printf("@@ check changed %+v\n", checked)
-			})
+
 			// we create a vbox with the name and the description
-			vbox := container.NewVBox(
+			vbox1 := container.NewVBox(
 				widget.NewLabel("name"),
 				widget.NewLabel("description"),
 			)
+			vbox2 := container.NewVBox(
+				widget.NewCheck("in Claude Desktop", nil),
+			)
 			return container.NewBorder(
 				nil, nil,
-				vbox,
-				check,
+				vbox1,
+				vbox2,
 			)
 		},
 		func(di binding.DataItem, o fyne.CanvasObject) {
@@ -68,18 +69,18 @@ func (l *MCPServersList) GetList() *widget.List {
 			mcpServer := server.(*configuration.McpServerDescription)
 			cont := o.(*fyne.Container)
 			// we get the vbox
-			vbox := cont.Objects[0].(*fyne.Container)
-			label := vbox.Objects[0].(*widget.Label)
+			vbox1 := cont.Objects[0].(*fyne.Container)
+			label := vbox1.Objects[0].(*widget.Label)
 			label.SetText(mcpServer.Name)
-			label = vbox.Objects[1].(*widget.Label)
+			label = vbox1.Objects[1].(*widget.Label)
 			label.SetText(mcpServer.Description)
 
 			// we get the check from the container
-			check := cont.Objects[1].(*widget.Check)
+			vbox2 := cont.Objects[1].(*fyne.Container)
+			check := vbox2.Objects[0].(*widget.Check)
 			check.SetChecked(mcpServer.InConfiguration)
 
 			check.OnChanged = func(checked bool) {
-				fmt.Printf("@@ 2> check changed %+v\n", checked)
 				mcpServer.InConfiguration = checked
 			}
 		})
