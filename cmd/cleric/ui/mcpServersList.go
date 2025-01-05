@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
@@ -53,13 +55,26 @@ func (l *MCPServersList) GetList() *widget.List {
 			// Create a container with background
 			background := canvas.NewRectangle(color.RGBA{R: 205, G: 92, B: 92, A: 180})
 
+			// create a horizontal box with the name and description
+			name := widget.NewLabel("")
+			name.TextStyle.Bold = true
+
 			description := widget.NewLabel("")
 			description.TextStyle.Italic = true
 
+			hbox := container.NewHBox(
+				name,
+				layout.NewSpacer(),
+				description,
+			)
+
+			command := widget.NewLabel("")
+			command.TextStyle.Monospace = true
+
 			// we create a vbox with the name and the description
 			vbox1 := container.NewVBox(
-				widget.NewLabel("name"),
-				description,
+				hbox,
+				command,
 			)
 			vbox2 := container.NewVBox(
 				container.NewStack(background, widget.NewCheck("in Claude Desktop", nil)),
@@ -68,7 +83,12 @@ func (l *MCPServersList) GetList() *widget.List {
 					"Edit",
 					theme.DocumentIcon(),
 					func() {
-						fmt.Println("@@ delete")
+					},
+				),
+				widget.NewButtonWithIcon(
+					"Delete",
+					theme.DeleteIcon(),
+					func() {
 					},
 				),
 			)
@@ -94,11 +114,15 @@ func (l *MCPServersList) GetList() *widget.List {
 			rightColumn := cont.Objects[1].(*fyne.Container)
 
 			// Update the rest of the content
-			label := leftColumn.Objects[0].(*widget.Label)
-			label.SetText(mcpServer.Name)
-			label = leftColumn.Objects[1].(*widget.Label)
-			label.SetText(mcpServer.Description)
+			hbox := leftColumn.Objects[0].(*fyne.Container)
+			name := hbox.Objects[0].(*widget.Label)
+			name.SetText(mcpServer.Name)
+			description := hbox.Objects[2].(*widget.Label)
+			description.SetText(mcpServer.Description)
+			command := leftColumn.Objects[1].(*widget.Label)
+			command.SetText(fmt.Sprintf("%s %s", mcpServer.Configuration.Command, strings.Join(mcpServer.Configuration.Args, " ")))
 
+			// right column
 			stack := rightColumn.Objects[0].(*fyne.Container)
 			background := stack.Objects[0].(*canvas.Rectangle)
 			check := stack.Objects[1].(*widget.Check)
@@ -143,7 +167,7 @@ func (l *MCPServersList) RevertMcpServers() {
 
 func (l *MCPServersList) AddMcpServer() {
 	nameEntry := widget.NewEntry()
-	descEntry := widget.NewMultiLineEntry()
+	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
 
@@ -159,6 +183,13 @@ func (l *MCPServersList) AddMcpServer() {
 		},
 		func(confirm bool) {
 			if confirm {
+				// we need to check that there is no other server with the same name
+				for _, otherServer := range l.mcpServers {
+					if otherServer.Name == nameEntry.Text {
+						dialog.ShowError(errors.New("a server with this name already exists"), l.window)
+						return
+					}
+				}
 				newServer := &configuration.McpServerDescription{
 					Name:        nameEntry.Text,
 					Description: descEntry.Text,
@@ -174,19 +205,24 @@ func (l *MCPServersList) AddMcpServer() {
 		},
 		l.window,
 	)
-	dialog.Resize(fyne.NewSize(400, 300))
+	dialog.Resize(fyne.NewSize(600, 300))
 	dialog.Show()
 }
 
 func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescription) {
 	nameEntry := widget.NewEntry()
-	descEntry := widget.NewMultiLineEntry()
+	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
 
+	nameEntry.SetText(server.Name)
+	descEntry.SetText(server.Description)
+	cmdEntry.SetText(server.Configuration.Command)
+	argsEntry.SetText(strings.Join(server.Configuration.Args, " "))
+
 	dialog := dialog.NewForm(
-		"Add MCP Server",
-		"Add",
+		"Edit MCP Server",
+		"Save",
 		"Cancel",
 		[]*widget.FormItem{
 			widget.NewFormItem("Name", nameEntry),
@@ -196,22 +232,27 @@ func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescriptio
 		},
 		func(confirm bool) {
 			if confirm {
-				newServer := &configuration.McpServerDescription{
-					Name:        nameEntry.Text,
-					Description: descEntry.Text,
-					Configuration: configuration.McpServerConfiguration{
-						Command: cmdEntry.Text,
-						Args:    splitArgs(argsEntry.Text),
-						Env:     map[string]string{},
-					},
+				server.Name = nameEntry.Text
+				var count = 0
+				// we need to check that there is no other server with the same name
+				for _, otherServer := range l.mcpServers {
+					if otherServer.Name == server.Name {
+						count++
+					}
 				}
-				l.mcpServers = append(l.mcpServers, newServer)
-				l.data.Append(newServer)
+				if count > 1 {
+					dialog.ShowError(errors.New("a server with this name already exists"), l.window)
+					return
+				}
+				server.Description = descEntry.Text
+				server.Configuration.Command = cmdEntry.Text
+				server.Configuration.Args = splitArgs(argsEntry.Text)
+				l.list.Refresh()
 			}
 		},
 		l.window,
 	)
-	dialog.Resize(fyne.NewSize(400, 300))
+	dialog.Resize(fyne.NewSize(600, 300))
 	dialog.Show()
 }
 
