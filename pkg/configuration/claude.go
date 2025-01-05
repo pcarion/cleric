@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 )
 
 type ClaudeDesktopConfig struct {
 	Path string
 }
 
-func NewClaudeDesktopConfig() *ClaudeDesktopConfig {
+func NewClaudeDesktopConfig(path string) *ClaudeDesktopConfig {
+	checkClaudePath(path)
+
 	return &ClaudeDesktopConfig{
-		Path: getClaudeDesktopConfigPath(),
+		Path: path,
 	}
 }
 
@@ -144,16 +144,7 @@ func (c *ClaudeDesktopConfig) SaveMcpServers(servers []*McpServerDescription) {
 	encoder.Encode(contentMap)
 }
 
-func getClaudeDesktopConfigPath() string {
-	homeDir, _ := os.UserHomeDir()
-	path := ""
-
-	if runtime.GOOS == "windows" {
-		path = filepath.Join(homeDir, "AppData", "Roaming", "Claude", "claude_desktop_config.json")
-	} else {
-		path = filepath.Join(homeDir, "Library", "Application Support", "Claude", "claude_desktop_config.json")
-	}
-
+func checkClaudePath(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// we create an empty config
 		emptyConfig := make(map[string]interface{})
@@ -170,8 +161,5 @@ func getClaudeDesktopConfigPath() string {
 		encoder := json.NewEncoder(file)
 		encoder.SetIndent("", "  ")
 		encoder.Encode(emptyConfig)
-
-		fmt.Printf("Created empty claude config file at %s with content %v\n", path, emptyConfig)
 	}
-	return path
 }

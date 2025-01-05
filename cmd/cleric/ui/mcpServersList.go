@@ -136,8 +136,7 @@ func (l *MCPServersList) GetList() *widget.List {
 			}
 			editButton.OnTapped = func() {
 				// we need the index of the server
-				index := l.list.Selected()
-				l.EditMcpServer(l.mcpServers[index])
+				l.EditMcpServer(mcpServer)
 			}
 			// Set background color based on some condition
 			if mcpServer.InConfiguration {
@@ -216,7 +215,7 @@ func (l *MCPServersList) AddMcpServer() {
 
 func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescription) {
 	nameEntry := widget.NewEntry()
-	nameEntry.Validator = l.ValidateExistingName
+	nameEntry.Validator = l.ValidateExistingName(server.Index)
 	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
@@ -277,15 +276,16 @@ func (l *MCPServersList) ValidateNewName(name string) error {
 	return nil
 }
 
-func (l *MCPServersList) ValidateExistingName(name string) error {
-	var count = 0
-	for _, server := range l.mcpServers {
-		if server.Name == name {
-			count++
+func (l *MCPServersList) ValidateExistingName(index int) func(name string) error {
+	return func(name string) error {
+		for i, server := range l.mcpServers {
+			if i == index {
+				continue
+			}
+			if server.Name == name {
+				return errors.New("a server with this name already exists")
+			}
 		}
+		return nil
 	}
-	if count > 1 {
-		return errors.New("a server with this name already exists")
-	}
-	return nil
 }

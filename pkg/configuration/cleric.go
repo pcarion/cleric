@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
 type ClericJsonConfig struct {
@@ -17,8 +16,8 @@ type ClericConfig struct {
 	Config *ClericJsonConfig
 }
 
-func NewClericConfig() *ClericConfig {
-	path := getClericListMcpServersPath()
+func NewClericConfig(path string) *ClericConfig {
+	checkClericPath(path)
 	return &ClericConfig{
 		Path: path,
 		Config: &ClericJsonConfig{
@@ -58,10 +57,7 @@ func (c *ClericConfig) SaveMcpServers(servers []*McpServerDescription) {
 	encoder.Encode(c.Config)
 }
 
-func getClericListMcpServersPath() string {
-	homeDir, _ := os.UserHomeDir()
-	path := filepath.Join(homeDir, ".cleric.json")
-
+func checkClericPath(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		_, err = os.Create(path)
 		if err != nil {
@@ -83,6 +79,4 @@ func getClericListMcpServersPath() string {
 		encoder.SetIndent("", "  ")
 		encoder.Encode(emptyConfig)
 	}
-
-	return path
 }
