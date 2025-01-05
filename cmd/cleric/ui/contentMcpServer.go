@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
@@ -9,20 +11,55 @@ import (
 )
 
 type ContentMcpServer struct {
-	mcpServer *configuration.McpServerDescription
+	mcpServer       *configuration.McpServerDescription
+	toolbar         *widget.Toolbar
+	listRefreshable listRefreshable
 }
 
-func NewContentMcpServer(mcpServer *configuration.McpServerDescription) *ContentMcpServer {
-	return &ContentMcpServer{mcpServer: mcpServer}
+func NewContentMcpServer(mcpServer *configuration.McpServerDescription, listRefreshable listRefreshable) *ContentMcpServer {
+	return &ContentMcpServer{mcpServer: mcpServer, listRefreshable: listRefreshable}
 }
 
 func (c *ContentMcpServer) menuItem() menuItem {
 	return c
 }
 
+func (c *ContentMcpServer) claudeAction() ClaudeAction {
+	return c
+}
+
+func (c *ContentMcpServer) IsServerInClaude() bool {
+	return c.mcpServer.InConfiguration
+}
+
+func (c *ContentMcpServer) AddToClaude() {
+	c.mcpServer.InConfiguration = true
+	c.toolbar.Refresh()
+	c.listRefreshable.Refresh()
+}
+
+func (c *ContentMcpServer) RemoveFromClaude() {
+	c.mcpServer.InConfiguration = false
+	c.toolbar.Refresh()
+	c.listRefreshable.Refresh()
+}
+
 func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
+			// create a toolbar with buttons
+			t := widget.NewToolbar(
+				NewToolbarClaudeAction(c.claudeAction()),
+				widget.NewToolbarSeparator(),
+				widget.NewToolbarSpacer(),
+				widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }),
+				widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }),
+				widget.NewToolbarAction(theme.ContentPasteIcon(), func() { fmt.Println("Paste") }),
+			)
+
+			t.Refresh()
+			c.toolbar = t
+
 			// Create a vertical box to hold all rows
 			vbox := container.NewVBox()
 
@@ -85,7 +122,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			)
 			vbox.Add(envVarsRow)
 
-			return container.NewVScroll(vbox)
+			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(vbox))
 		},
 	}
 }

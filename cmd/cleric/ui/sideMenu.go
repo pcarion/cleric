@@ -33,6 +33,12 @@ func NewSideMenu() *SideMenu {
 	}
 }
 
+func (s *SideMenu) Refresh() {
+	if s.list != nil {
+		s.list.Refresh()
+	}
+}
+
 func (s *SideMenu) MakeNavigation(setMainContent setMainContentFunc, myApp fyne.App) fyne.CanvasObject {
 
 	// use the mcp servers as the data
@@ -41,7 +47,7 @@ func (s *SideMenu) MakeNavigation(setMainContent setMainContentFunc, myApp fyne.
 	data = append(data, NewContentWelcome().menuItem())
 
 	for _, server := range s.mcpServers {
-		data = append(data, NewContentMcpServer(server).menuItem())
+		data = append(data, NewContentMcpServer(server, s).menuItem())
 	}
 
 	s.list = widget.NewList(

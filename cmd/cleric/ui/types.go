@@ -6,3 +6,7 @@ type MainContent struct {
 	Title string
 	View  func(w fyne.Window) fyne.CanvasObject
 }
+
+type listRefreshable interface {
+	Refresh()
+}
