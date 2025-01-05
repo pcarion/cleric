@@ -49,9 +49,7 @@ func (l *MCPServersList) GetList() *widget.List {
 		l.data,
 		func() fyne.CanvasObject {
 			// Create a container with background
-			background := canvas.NewRectangle(color.RGBA{R: 205, G: 92, B: 92, A: 255})
-
-			stack := container.NewStack(background)
+			background := canvas.NewRectangle(color.RGBA{R: 205, G: 92, B: 92, A: 180})
 
 			// we create a vbox with the name and the description
 			vbox1 := container.NewVBox(
@@ -59,7 +57,7 @@ func (l *MCPServersList) GetList() *widget.List {
 				widget.NewLabel("description"),
 			)
 			vbox2 := container.NewVBox(
-				widget.NewCheck("in Claude Desktop", nil),
+				container.NewStack(background, widget.NewCheck("in Claude Desktop", nil)),
 				widget.NewSeparator(),
 				widget.NewButtonWithIcon(
 					"Edit",
@@ -76,8 +74,7 @@ func (l *MCPServersList) GetList() *widget.List {
 				vbox2,
 			)
 
-			stack.Add(content)
-			return stack
+			return content
 		},
 		func(di binding.DataItem, o fyne.CanvasObject) {
 			server, err := di.(binding.Untyped).Get()
@@ -87,10 +84,25 @@ func (l *MCPServersList) GetList() *widget.List {
 			mcpServer := server.(*configuration.McpServerDescription)
 
 			// Get the background container
-			cont := o.(*fyne.Container)
-			background := cont.Objects[0].(*canvas.Rectangle)
-			innerCont := cont.Objects[1].(*fyne.Container)
+			cont := o.(*fyne.Container) // that's the Border component
+			leftColumn := cont.Objects[0].(*fyne.Container)
+			rightColumn := cont.Objects[1].(*fyne.Container)
 
+			// Update the rest of the content
+			label := leftColumn.Objects[0].(*widget.Label)
+			label.SetText(mcpServer.Name)
+			label = leftColumn.Objects[1].(*widget.Label)
+			label.SetText(mcpServer.Description)
+
+			stack := rightColumn.Objects[0].(*fyne.Container)
+			background := stack.Objects[0].(*canvas.Rectangle)
+			check := stack.Objects[1].(*widget.Check)
+			check.SetChecked(mcpServer.InConfiguration)
+
+			check.OnChanged = func(checked bool) {
+				mcpServer.InConfiguration = checked
+				l.list.Refresh() // Refresh to update styling
+			}
 			// Set background color based on some condition
 			if mcpServer.InConfiguration {
 				// #DA7857
@@ -100,21 +112,6 @@ func (l *MCPServersList) GetList() *widget.List {
 				background.FillColor = color.RGBA{R: 87, G: 166, B: 218, A: 0}
 			}
 
-			// Update the rest of the content
-			vbox1 := innerCont.Objects[0].(*fyne.Container)
-			label := vbox1.Objects[0].(*widget.Label)
-			label.SetText(mcpServer.Name)
-			label = vbox1.Objects[1].(*widget.Label)
-			label.SetText(mcpServer.Description)
-
-			vbox2 := innerCont.Objects[1].(*fyne.Container)
-			check := vbox2.Objects[0].(*widget.Check)
-			check.SetChecked(mcpServer.InConfiguration)
-
-			check.OnChanged = func(checked bool) {
-				mcpServer.InConfiguration = checked
-				l.list.Refresh() // Refresh to update styling
-			}
 		})
 
 	return l.list
