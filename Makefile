@@ -25,4 +25,7 @@ test-coverage:
 lint:
 	golangci-lint run
 
+package:
+	fyne package -sourceDir cmd/cleric
+
 .PHONY: build run clean test test-coverage lint
