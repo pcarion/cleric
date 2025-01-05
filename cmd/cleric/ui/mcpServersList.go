@@ -51,7 +51,6 @@ func (l *MCPServersList) GetList() *widget.List {
 	if l.list != nil {
 		return l.list
 	}
-
 	l.list = widget.NewListWithData(
 		l.data,
 		func() fyne.CanvasObject {
@@ -156,6 +155,7 @@ func (l *MCPServersList) GetList() *widget.List {
 
 		})
 
+	l.list.HideSeparators = false
 	return l.list
 }
 

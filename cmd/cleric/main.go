@@ -67,6 +67,9 @@ func main() {
 		widget.NewButton("Add new MCPserver", func() {
 			mcpServersList.AddMcpServer()
 		}),
+		// separator
+		widget.NewSeparator(),
+		widget.NewSeparator(),
 		themes,
 	)
 
