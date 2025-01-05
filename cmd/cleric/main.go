@@ -53,7 +53,7 @@ func main() {
 	// Center the window on screen
 	myWindow.CenterOnScreen()
 
-	mcpServersList := ui.NewMcpServersList()
+	mcpServersList := ui.NewMcpServersList(myWindow)
 
 	themes := container.NewGridWithColumns(2,
 		widget.NewButton("Dark", func() {
@@ -66,7 +66,7 @@ func main() {
 
 	buttons := container.New(layout.NewGridLayout(4),
 		widget.NewButton("Add new MCPserver", func() {
-			mcpServersList.AddMcpServer(myWindow)
+			mcpServersList.AddMcpServer()
 		}),
 		widget.NewButton("Save", func() {
 			mcpServersList.SaveMcpServers()

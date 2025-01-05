@@ -21,9 +21,10 @@ type MCPServersList struct {
 	data       binding.UntypedList
 	list       *widget.List
 	mcpServers []*configuration.McpServerDescription
+	window     fyne.Window
 }
 
-func NewMcpServersList() *MCPServersList {
+func NewMcpServersList(window fyne.Window) *MCPServersList {
 	config := configuration.LoadConfiguration()
 	mcpServers := config.LoadMcpServers()
 
@@ -37,6 +38,7 @@ func NewMcpServersList() *MCPServersList {
 		data:       data,
 		list:       nil,
 		mcpServers: mcpServers,
+		window:     window,
 	}
 }
 
@@ -51,10 +53,13 @@ func (l *MCPServersList) GetList() *widget.List {
 			// Create a container with background
 			background := canvas.NewRectangle(color.RGBA{R: 205, G: 92, B: 92, A: 180})
 
+			description := widget.NewLabel("")
+			description.TextStyle.Italic = true
+
 			// we create a vbox with the name and the description
 			vbox1 := container.NewVBox(
 				widget.NewLabel("name"),
-				widget.NewLabel("description"),
+				description,
 			)
 			vbox2 := container.NewVBox(
 				container.NewStack(background, widget.NewCheck("in Claude Desktop", nil)),
@@ -98,10 +103,14 @@ func (l *MCPServersList) GetList() *widget.List {
 			background := stack.Objects[0].(*canvas.Rectangle)
 			check := stack.Objects[1].(*widget.Check)
 			check.SetChecked(mcpServer.InConfiguration)
+			editButton := rightColumn.Objects[2].(*widget.Button)
 
 			check.OnChanged = func(checked bool) {
 				mcpServer.InConfiguration = checked
 				l.list.Refresh() // Refresh to update styling
+			}
+			editButton.OnTapped = func() {
+				l.EditMcpServer(mcpServer)
 			}
 			// Set background color based on some condition
 			if mcpServer.InConfiguration {
@@ -132,7 +141,7 @@ func (l *MCPServersList) RevertMcpServers() {
 	l.list.Refresh()
 }
 
-func (l *MCPServersList) AddMcpServer(window fyne.Window) {
+func (l *MCPServersList) AddMcpServer() {
 	nameEntry := widget.NewEntry()
 	descEntry := widget.NewMultiLineEntry()
 	cmdEntry := widget.NewEntry()
@@ -163,7 +172,44 @@ func (l *MCPServersList) AddMcpServer(window fyne.Window) {
 				l.data.Append(newServer)
 			}
 		},
-		window,
+		l.window,
+	)
+	dialog.Resize(fyne.NewSize(400, 300))
+	dialog.Show()
+}
+
+func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescription) {
+	nameEntry := widget.NewEntry()
+	descEntry := widget.NewMultiLineEntry()
+	cmdEntry := widget.NewEntry()
+	argsEntry := widget.NewEntry()
+
+	dialog := dialog.NewForm(
+		"Add MCP Server",
+		"Add",
+		"Cancel",
+		[]*widget.FormItem{
+			widget.NewFormItem("Name", nameEntry),
+			widget.NewFormItem("Description", descEntry),
+			widget.NewFormItem("Command", cmdEntry),
+			widget.NewFormItem("Arguments", argsEntry),
+		},
+		func(confirm bool) {
+			if confirm {
+				newServer := &configuration.McpServerDescription{
+					Name:        nameEntry.Text,
+					Description: descEntry.Text,
+					Configuration: configuration.McpServerConfiguration{
+						Command: cmdEntry.Text,
+						Args:    splitArgs(argsEntry.Text),
+						Env:     map[string]string{},
+					},
+				}
+				l.mcpServers = append(l.mcpServers, newServer)
+				l.data.Append(newServer)
+			}
+		},
+		l.window,
 	)
 	dialog.Resize(fyne.NewSize(400, 300))
 	dialog.Show()
