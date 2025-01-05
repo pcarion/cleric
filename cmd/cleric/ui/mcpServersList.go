@@ -2,10 +2,12 @@ package ui
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"strings"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
@@ -46,6 +48,10 @@ func (l *MCPServersList) GetList() *widget.List {
 	l.list = widget.NewListWithData(
 		l.data,
 		func() fyne.CanvasObject {
+			// Create a container with background
+			background := canvas.NewRectangle(color.RGBA{R: 205, G: 92, B: 92, A: 255})
+
+			stack := container.NewStack(background)
 
 			// we create a vbox with the name and the description
 			vbox1 := container.NewVBox(
@@ -63,11 +69,15 @@ func (l *MCPServersList) GetList() *widget.List {
 					},
 				),
 			)
-			return container.NewBorder(
+
+			content := container.NewBorder(
 				nil, nil,
 				vbox1,
 				vbox2,
 			)
+
+			stack.Add(content)
+			return stack
 		},
 		func(di binding.DataItem, o fyne.CanvasObject) {
 			server, err := di.(binding.Untyped).Get()
@@ -75,21 +85,35 @@ func (l *MCPServersList) GetList() *widget.List {
 				log.Fatalf("Failed to get server: %v", err)
 			}
 			mcpServer := server.(*configuration.McpServerDescription)
+
+			// Get the background container
 			cont := o.(*fyne.Container)
-			// we get the vbox
-			vbox1 := cont.Objects[0].(*fyne.Container)
+			background := cont.Objects[0].(*canvas.Rectangle)
+			innerCont := cont.Objects[1].(*fyne.Container)
+
+			// Set background color based on some condition
+			if mcpServer.InConfiguration {
+				// #DA7857
+				background.FillColor = color.RGBA{R: 218, G: 120, B: 87, A: 200}
+			} else {
+				// transparent
+				background.FillColor = color.RGBA{R: 87, G: 166, B: 218, A: 0}
+			}
+
+			// Update the rest of the content
+			vbox1 := innerCont.Objects[0].(*fyne.Container)
 			label := vbox1.Objects[0].(*widget.Label)
 			label.SetText(mcpServer.Name)
 			label = vbox1.Objects[1].(*widget.Label)
 			label.SetText(mcpServer.Description)
 
-			// we get the check from the container
-			vbox2 := cont.Objects[1].(*fyne.Container)
+			vbox2 := innerCont.Objects[1].(*fyne.Container)
 			check := vbox2.Objects[0].(*widget.Check)
 			check.SetChecked(mcpServer.InConfiguration)
 
 			check.OnChanged = func(checked bool) {
 				mcpServer.InConfiguration = checked
+				l.list.Refresh() // Refresh to update styling
 			}
 		})
 
