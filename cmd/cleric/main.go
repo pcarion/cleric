@@ -18,7 +18,7 @@ func main() {
 	mainContentStack := container.NewStack()
 	mainContentContainer := container.NewBorder(nil, nil, nil, nil, mainContentStack)
 
-	setMainContent := func(mainContent ui.MainContent) {
+	setMainContent := func(mainContent *ui.MainContent) {
 		mainContentStack.Objects = []fyne.CanvasObject{mainContent.View(myWindow)}
 		mainContentStack.Refresh()
 	}
@@ -26,6 +26,8 @@ func main() {
 	split := container.NewHSplit(sideMenu.MakeNavigation(setMainContent, myApp), mainContentContainer)
 	split.Offset = 0.2
 	myWindow.SetContent(split)
+
+	sideMenu.SelectItem(0)
 
 	myWindow.Resize(fyne.NewSize(640, 460))
 	// Center the window on screen
