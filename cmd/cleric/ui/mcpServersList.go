@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
@@ -134,7 +135,9 @@ func (l *MCPServersList) GetList() *widget.List {
 				l.list.Refresh() // Refresh to update styling
 			}
 			editButton.OnTapped = func() {
-				l.EditMcpServer(mcpServer)
+				// we need the index of the server
+				index := l.list.Selected()
+				l.EditMcpServer(l.mcpServers[index])
 			}
 			// Set background color based on some condition
 			if mcpServer.InConfiguration {
@@ -167,6 +170,8 @@ func (l *MCPServersList) RevertMcpServers() {
 
 func (l *MCPServersList) AddMcpServer() {
 	nameEntry := widget.NewEntry()
+	nameEntry.Validator = l.ValidateNewName
+
 	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
@@ -176,10 +181,10 @@ func (l *MCPServersList) AddMcpServer() {
 		"Add",
 		"Cancel",
 		[]*widget.FormItem{
-			widget.NewFormItem("Name", nameEntry),
-			widget.NewFormItem("Description", descEntry),
-			widget.NewFormItem("Command", cmdEntry),
-			widget.NewFormItem("Arguments", argsEntry),
+			{Text: "Name", Widget: nameEntry, HintText: "Must be unique"},
+			{Text: "Description", Widget: descEntry},
+			{Text: "Command", Widget: cmdEntry},
+			{Text: "Arguments", Widget: argsEntry},
 		},
 		func(confirm bool) {
 			if confirm {
@@ -211,9 +216,12 @@ func (l *MCPServersList) AddMcpServer() {
 
 func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescription) {
 	nameEntry := widget.NewEntry()
+	nameEntry.Validator = l.ValidateExistingName
 	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
+
+	validation.NewRegexp("^[a-zA-Z0-9_-]+$", "Invalid name")
 
 	nameEntry.SetText(server.Name)
 	descEntry.SetText(server.Description)
@@ -225,10 +233,10 @@ func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescriptio
 		"Save",
 		"Cancel",
 		[]*widget.FormItem{
-			widget.NewFormItem("Name", nameEntry),
-			widget.NewFormItem("Description", descEntry),
-			widget.NewFormItem("Command", cmdEntry),
-			widget.NewFormItem("Arguments", argsEntry),
+			{Text: "Name", Widget: nameEntry, HintText: "Must be unique"},
+			{Text: "Description", Widget: descEntry},
+			{Text: "Command", Widget: cmdEntry},
+			{Text: "Arguments", Widget: argsEntry},
 		},
 		func(confirm bool) {
 			if confirm {
@@ -258,4 +266,26 @@ func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescriptio
 
 func splitArgs(args string) []string {
 	return strings.Split(args, " ")
+}
+
+func (l *MCPServersList) ValidateNewName(name string) error {
+	for _, server := range l.mcpServers {
+		if server.Name == name {
+			return errors.New("a server with this name already exists")
+		}
+	}
+	return nil
+}
+
+func (l *MCPServersList) ValidateExistingName(name string) error {
+	var count = 0
+	for _, server := range l.mcpServers {
+		if server.Name == name {
+			count++
+		}
+	}
+	if count > 1 {
+		return errors.New("a server with this name already exists")
+	}
+	return nil
 }
