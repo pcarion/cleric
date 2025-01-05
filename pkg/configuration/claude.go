@@ -87,48 +87,61 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 	return mcpServers, nil
 }
 
+// Add these new types to maintain order
+type OrderedConfig struct {
+	McpServers map[string]*ServerConfig `json:"mcpServers"`
+}
+
+type ServerConfig struct {
+	Command string            `json:"command"`
+	Args    []string          `json:"args"`
+	Env     map[string]string `json:"env"`
+}
+
 func (c *ClaudeDesktopConfig) SaveMcpServers(servers []*McpServerDescription) {
-	// we read the current content of the file
+	// Read existing content (same as before)
 	content, err := os.ReadFile(c.Path)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to read claude config file at %s: %v", c.Path, err))
 	}
-	// we decode the content as a map
-	var contentMap map[string]interface{}
+
+	// structure to hold the raw content
+	contentMap := make(map[string]interface{})
+
+	// read content as a json object
 	err = json.Unmarshal(content, &contentMap)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to unmarshal claude config file at %s: %v", c.Path, err))
+		panic(fmt.Sprintf("Failed to read claude config file at %s: %v", c.Path, err))
 	}
-	// we update the contentMap with the new servers
-	mcpServersMap := make(map[string]interface{})
+
+	// Decode into ordered structure
+	orderedConfig := OrderedConfig{
+		McpServers: make(map[string]*ServerConfig),
+	}
+
+	// Update with new servers
 	for _, server := range servers {
 		if server.InConfiguration {
-			// Convert Configuration struct to map
-			serverConfig := map[string]interface{}{
-				"command": server.Configuration.Command,
-				"args":    server.Configuration.Args,
-				"env":     server.Configuration.Env,
+			orderedConfig.McpServers[server.Name] = &ServerConfig{
+				Command: server.Configuration.Command,
+				Args:    server.Configuration.Args,
+				Env:     server.Configuration.Env,
 			}
-			mcpServersMap[server.Name] = serverConfig
 		}
 	}
-	// we update the contentMap with the new mcpServersMap
-	contentMap["mcpServers"] = mcpServersMap
-	// we encode the contentMap as a json object
-	// we use the json marshaller to write the contentMap in a format that is easy to read
+	// we write the orderedConfig in the contentMap
+	contentMap["mcpServers"] = orderedConfig.McpServers
+
+	// Write to file with consistent ordering
 	file, err := os.Create(c.Path)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create claude config file at %s: %v", c.Path, err))
 	}
 	defer file.Close()
+
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	encoder.Encode(contentMap)
-
-	err = os.WriteFile(c.Path, content, 0644)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to write claude config file at %s: %v", c.Path, err))
-	}
 }
 
 func getClaudeDesktopConfigPath() string {

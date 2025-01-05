@@ -35,17 +35,12 @@ func (c *Configuration) LoadMcpServers() []*McpServerDescription {
 	}
 
 	// we merge the two lists
-	// we check if the servers from claude are already in cleric
-	// if they are, we remove them from cleric
-	// if they are not, we add them to cleric
 	allServers := []*McpServerDescription{}
 	// we take all the servers from claude
 	for _, server := range claudeServers {
-		if !contains(clericServers, server) {
-			// we mark the server as in configuration
-			server.InConfiguration = true
-			allServers = append(allServers, server)
-		}
+		// we mark the server as in configuration
+		server.InConfiguration = true
+		allServers = append(allServers, server)
 	}
 	// we take all the servers from cleric that are not in claude
 	for _, server := range clericServers {

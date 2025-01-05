@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -25,6 +27,7 @@ func NewMcpServersList() *MCPServersList {
 	// Create a binding data list
 	data := binding.NewUntypedList()
 	for _, server := range mcpServers {
+		fmt.Printf("@@ server %+v\n", server)
 		data.Append(server)
 	}
 
@@ -43,7 +46,7 @@ func (l *MCPServersList) GetList() *widget.List {
 	l.list = widget.NewListWithData(
 		l.data,
 		func() fyne.CanvasObject {
-			check := widget.NewCheck("", func(bool) {})
+			check := widget.NewCheck("", nil)
 			return container.NewBorder(
 				nil, nil,
 				widget.NewLabel("template"),
@@ -58,7 +61,13 @@ func (l *MCPServersList) GetList() *widget.List {
 			mcpServer := server.(*configuration.McpServerDescription)
 			cont := o.(*fyne.Container)
 			label := cont.Objects[0].(*widget.Label)
+			check := cont.Objects[1].(*widget.Check)
 			label.SetText(mcpServer.Name)
+			check.SetChecked(mcpServer.InConfiguration)
+
+			check.OnChanged = func(checked bool) {
+				mcpServer.InConfiguration = checked
+			}
 		})
 
 	return l.list
@@ -97,19 +106,25 @@ func (l *MCPServersList) AddMcpServer(window fyne.Window) {
 		},
 		func(confirm bool) {
 			if confirm {
-				// newServer := &configuration.McpServerDescription{
-				// 	Name:        nameEntry.Text,
-				// 	Description: descEntry.Text,
-				// 	Command:     cmdEntry.Text,
-				// 	Arguments:   argsEntry.Text,
-				// }
-				// l.mcpServers = append(l.mcpServers, newServer)
-				// l.data.Append(newServer)
-				// l.SaveMcpServers()
+				newServer := &configuration.McpServerDescription{
+					Name:        nameEntry.Text,
+					Description: descEntry.Text,
+					Configuration: configuration.McpServerConfiguration{
+						Command: cmdEntry.Text,
+						Args:    splitArgs(argsEntry.Text),
+						Env:     map[string]string{},
+					},
+				}
+				l.mcpServers = append(l.mcpServers, newServer)
+				l.data.Append(newServer)
 			}
 		},
 		window,
 	)
 	dialog.Resize(fyne.NewSize(400, 300))
 	dialog.Show()
+}
+
+func splitArgs(args string) []string {
+	return strings.Split(args, " ")
 }
