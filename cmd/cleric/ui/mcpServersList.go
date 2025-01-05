@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/pcarion/cleric/pkg/configuration"
@@ -27,7 +28,6 @@ func NewMcpServersList() *MCPServersList {
 	// Create a binding data list
 	data := binding.NewUntypedList()
 	for _, server := range mcpServers {
-		fmt.Printf("@@ server %+v\n", server)
 		data.Append(server)
 	}
 
@@ -54,6 +54,14 @@ func (l *MCPServersList) GetList() *widget.List {
 			)
 			vbox2 := container.NewVBox(
 				widget.NewCheck("in Claude Desktop", nil),
+				widget.NewSeparator(),
+				widget.NewButtonWithIcon(
+					"Edit",
+					theme.DocumentIcon(),
+					func() {
+						fmt.Println("@@ delete")
+					},
+				),
 			)
 			return container.NewBorder(
 				nil, nil,
