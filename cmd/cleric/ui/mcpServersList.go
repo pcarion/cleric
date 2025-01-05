@@ -21,6 +21,7 @@ import (
 )
 
 type MCPServersList struct {
+	config     *configuration.Configuration
 	data       binding.UntypedList
 	list       *widget.List
 	mcpServers []*configuration.McpServerDescription
@@ -38,6 +39,7 @@ func NewMcpServersList(window fyne.Window) *MCPServersList {
 	}
 
 	return &MCPServersList{
+		config:     config,
 		data:       data,
 		list:       nil,
 		mcpServers: mcpServers,
@@ -129,6 +131,7 @@ func (l *MCPServersList) GetList() *widget.List {
 			check := stack.Objects[1].(*widget.Check)
 			check.SetChecked(mcpServer.InConfiguration)
 			editButton := rightColumn.Objects[2].(*widget.Button)
+			deleteButton := rightColumn.Objects[3].(*widget.Button)
 
 			check.OnChanged = func(checked bool) {
 				mcpServer.InConfiguration = checked
@@ -137,6 +140,10 @@ func (l *MCPServersList) GetList() *widget.List {
 			editButton.OnTapped = func() {
 				// we need the index of the server
 				l.EditMcpServer(mcpServer)
+			}
+			deleteButton.OnTapped = func() {
+				fmt.Println("delete button tapped")
+				l.DeleteMcpServer(mcpServer)
 			}
 			// Set background color based on some condition
 			if mcpServer.InConfiguration {
@@ -152,19 +159,30 @@ func (l *MCPServersList) GetList() *widget.List {
 	return l.list
 }
 
-func (l *MCPServersList) SaveMcpServers() {
-	config := configuration.LoadConfiguration()
-	config.SaveMcpServers(l.mcpServers)
+func (l *MCPServersList) saveMcpServers() {
+	l.config.SaveMcpServers(l.mcpServers)
 }
 
-func (l *MCPServersList) RevertMcpServers() {
-	config := configuration.LoadConfiguration()
-	l.mcpServers = config.LoadMcpServers()
-	l.data.Set([]interface{}{})
-	for _, server := range l.mcpServers {
-		l.data.Append(server)
-	}
-	l.list.Refresh()
+func (l *MCPServersList) DeleteMcpServer(server *configuration.McpServerDescription) {
+	// ask for confirmation
+	fmt.Println("delete MCP server", server.Name, server.Uuid)
+	cnf := dialog.NewConfirm("Delete MCP Server", "Are you sure you want to delete this server?", func(confirm bool) {
+		if confirm {
+			// we remove the server from the list
+			for i, s := range l.mcpServers {
+				if s.Uuid == server.Uuid {
+					l.mcpServers = append(l.mcpServers[:i], l.mcpServers[i+1:]...)
+					break
+				}
+			}
+			l.data.Remove(server)
+			l.list.Refresh()
+			l.saveMcpServers()
+		}
+	}, l.window)
+	cnf.SetDismissText("Cancel")
+	cnf.SetConfirmText("Delete")
+	cnf.Show()
 }
 
 func (l *MCPServersList) AddMcpServer() {
@@ -205,6 +223,7 @@ func (l *MCPServersList) AddMcpServer() {
 				}
 				l.mcpServers = append(l.mcpServers, newServer)
 				l.data.Append(newServer)
+				l.saveMcpServers()
 			}
 		},
 		l.window,
@@ -215,7 +234,7 @@ func (l *MCPServersList) AddMcpServer() {
 
 func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescription) {
 	nameEntry := widget.NewEntry()
-	nameEntry.Validator = l.ValidateExistingName(server.Index)
+	nameEntry.Validator = l.ValidateExistingName(server.Uuid)
 	descEntry := widget.NewEntry()
 	cmdEntry := widget.NewEntry()
 	argsEntry := widget.NewEntry()
@@ -255,6 +274,7 @@ func (l *MCPServersList) EditMcpServer(server *configuration.McpServerDescriptio
 				server.Configuration.Command = cmdEntry.Text
 				server.Configuration.Args = splitArgs(argsEntry.Text)
 				l.list.Refresh()
+				l.saveMcpServers()
 			}
 		},
 		l.window,
@@ -276,10 +296,10 @@ func (l *MCPServersList) ValidateNewName(name string) error {
 	return nil
 }
 
-func (l *MCPServersList) ValidateExistingName(index int) func(name string) error {
+func (l *MCPServersList) ValidateExistingName(uuid string) func(name string) error {
 	return func(name string) error {
-		for i, server := range l.mcpServers {
-			if i == index {
+		for _, server := range l.mcpServers {
+			if server.Uuid == uuid {
 				continue
 			}
 			if server.Name == name {

@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/google/uuid"
 )
 
 type Configuration struct {
@@ -70,8 +72,8 @@ func (c *Configuration) LoadMcpServers() []*McpServerDescription {
 	}
 
 	// we set the index for each server
-	for i, server := range allServers {
-		server.Index = i
+	for _, server := range allServers {
+		server.Uuid = uuid.New().String()
 	}
 
 	return allServers

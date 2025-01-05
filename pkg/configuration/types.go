@@ -9,7 +9,7 @@ type McpServerConfiguration struct {
 type McpServerDescription struct {
 	Name            string                 `json:"name"`
 	Description     string                 `json:"description"`
-	Index           int                    `json:"-"` // index in the list of servers
+	Uuid            string                 `json:"-"`
 	InConfiguration bool                   `json:"-"`
 	Configuration   McpServerConfiguration `json:"configuration"`
 }

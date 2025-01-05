@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -67,13 +66,6 @@ func main() {
 	buttons := container.New(layout.NewGridLayout(4),
 		widget.NewButton("Add new MCPserver", func() {
 			mcpServersList.AddMcpServer()
-		}),
-		widget.NewButton("Save", func() {
-			mcpServersList.SaveMcpServers()
-			dialog.ShowInformation("Information", "MCP servers saved. You should restart Claude to see the changes.", myWindow)
-		}),
-		widget.NewButton("Revert", func() {
-			mcpServersList.RevertMcpServers()
 		}),
 		themes,
 	)
