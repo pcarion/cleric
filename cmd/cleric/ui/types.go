@@ -8,5 +8,6 @@ type MainContent struct {
 }
 
 type listRefreshable interface {
-	Refresh()
+	RefreshCurrentContent()
+	RefreshSideMenu()
 }

@@ -32,3 +32,29 @@ func (t *ToolbarClaudeAction) ToolbarObject() fyne.CanvasObject {
 		})
 	}
 }
+
+type ToolbarEditAction interface {
+	IsEditMode() bool
+	EditMode()
+	CancelEditMode()
+}
+
+type ToolbarEdit struct {
+	action ToolbarEditAction
+}
+
+func NewEditToolbar(action ToolbarEditAction) *ToolbarEdit {
+	return &ToolbarEdit{action: action}
+}
+
+func (t *ToolbarEdit) ToolbarObject() fyne.CanvasObject {
+	if t.action.IsEditMode() {
+		return widget.NewToolbarAction(theme.CancelIcon(), func() {
+			t.action.CancelEditMode()
+		}).ToolbarObject()
+	} else {
+		return widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
+			t.action.EditMode()
+		}).ToolbarObject()
+	}
+}

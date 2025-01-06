@@ -18,28 +18,44 @@ type menuItem interface {
 
 // definition of the side menu
 type SideMenu struct {
-	config     *configuration.Configuration
-	mcpServers []*configuration.McpServerDescription
-	list       *widget.List
+	config             *configuration.Configuration
+	mcpServers         []*configuration.McpServerDescription
+	list               *widget.List
+	refreshMainContent func()
 }
 
-func NewSideMenu() *SideMenu {
+func NewSideMenu(refreshMainContent func()) *SideMenu {
 	config := configuration.LoadConfiguration()
 	mcpServers := config.LoadMcpServers()
 
 	return &SideMenu{
-		config:     config,
-		mcpServers: mcpServers,
+		config:             config,
+		mcpServers:         mcpServers,
+		refreshMainContent: refreshMainContent,
 	}
 }
 
-func (s *SideMenu) Refresh() {
+func (s *SideMenu) AsListRefreshable() listRefreshable {
+	return s
+}
+
+func (s *SideMenu) RefreshSideMenu() {
 	if s.list != nil {
 		s.list.Refresh()
 	}
 }
 
-func (s *SideMenu) MakeNavigation(setMainContent setMainContentFunc, myApp fyne.App) fyne.CanvasObject {
+func (s *SideMenu) RefreshCurrentContent() {
+	if s.refreshMainContent != nil {
+		s.refreshMainContent()
+	}
+}
+
+func (s *SideMenu) MakeNavigation(
+	setMainContent setMainContentFunc,
+	refreshMainContent func(),
+	myApp fyne.App,
+) fyne.CanvasObject {
 
 	// use the mcp servers as the data
 	data := make([]menuItem, 0, 1+len(s.mcpServers))
@@ -47,7 +63,7 @@ func (s *SideMenu) MakeNavigation(setMainContent setMainContentFunc, myApp fyne.
 	data = append(data, NewContentWelcome().menuItem())
 
 	for _, server := range s.mcpServers {
-		data = append(data, NewContentMcpServer(server, s).menuItem())
+		data = append(data, NewContentMcpServer(server, s.AsListRefreshable()).menuItem())
 	}
 
 	s.list = widget.NewList(

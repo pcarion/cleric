@@ -14,10 +14,18 @@ type ContentMcpServer struct {
 	mcpServer       *configuration.McpServerDescription
 	toolbar         *widget.Toolbar
 	listRefreshable listRefreshable
+	editMode        bool
 }
 
-func NewContentMcpServer(mcpServer *configuration.McpServerDescription, listRefreshable listRefreshable) *ContentMcpServer {
-	return &ContentMcpServer{mcpServer: mcpServer, listRefreshable: listRefreshable}
+func NewContentMcpServer(
+	mcpServer *configuration.McpServerDescription,
+	listRefreshable listRefreshable,
+) *ContentMcpServer {
+	return &ContentMcpServer{
+		mcpServer:       mcpServer,
+		listRefreshable: listRefreshable,
+		editMode:        false,
+	}
 }
 
 func (c *ContentMcpServer) menuItem() menuItem {
@@ -35,16 +43,35 @@ func (c *ContentMcpServer) IsServerInClaude() bool {
 func (c *ContentMcpServer) AddToClaude() {
 	c.mcpServer.InConfiguration = true
 	c.toolbar.Refresh()
-	c.listRefreshable.Refresh()
+	c.listRefreshable.RefreshSideMenu()
 }
 
 func (c *ContentMcpServer) RemoveFromClaude() {
 	c.mcpServer.InConfiguration = false
 	c.toolbar.Refresh()
-	c.listRefreshable.Refresh()
+	c.listRefreshable.RefreshSideMenu()
+}
+
+func (c *ContentMcpServer) editAction() ToolbarEditAction {
+	return c
+}
+
+func (c *ContentMcpServer) IsEditMode() bool {
+	return c.editMode
+}
+
+func (c *ContentMcpServer) CancelEditMode() {
+	c.editMode = false
+	c.listRefreshable.RefreshCurrentContent()
+}
+
+func (c *ContentMcpServer) EditMode() {
+	c.editMode = true
+	c.listRefreshable.RefreshCurrentContent()
 }
 
 func (c *ContentMcpServer) content() *MainContent {
+	fmt.Printf("@@ content() - editMode:%t\n", c.editMode)
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
@@ -54,7 +81,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				widget.NewToolbarSpacer(),
 				widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }),
 				widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }),
-				widget.NewToolbarAction(theme.ContentPasteIcon(), func() { fmt.Println("Paste") }),
+				NewEditToolbar(c.editAction()),
 			)
 
 			t.Refresh()
@@ -69,7 +96,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			nameRow := container.NewGridWithColumns(3,
 				label,
 				widget.NewLabel(c.mcpServer.Name),
-				widget.NewButton("Edit", func() {
+				widget.NewButton(fmt.Sprintf("Edit (%t)", c.editMode), func() {
 					// TODO: Implement edit functionality
 				}),
 			)
