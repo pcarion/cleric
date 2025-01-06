@@ -49,9 +49,9 @@ func NewEditToolbar(action ToolbarEditAction) *ToolbarEdit {
 
 func (t *ToolbarEdit) ToolbarObject() fyne.CanvasObject {
 	if t.action.IsEditMode() {
-		return widget.NewToolbarAction(theme.CancelIcon(), func() {
+		return widget.NewButtonWithIcon("Exit edit mode", theme.CancelIcon(), func() {
 			t.action.CancelEditMode()
-		}).ToolbarObject()
+		})
 	} else {
 		return widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
 			t.action.EditMode()

@@ -75,14 +75,18 @@ func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
-			t := widget.NewToolbar(
-				NewToolbarClaudeAction(c.claudeAction()),
-				widget.NewToolbarSeparator(),
-				widget.NewToolbarSpacer(),
-				widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }),
-				widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }),
-				NewEditToolbar(c.editAction()),
-			)
+			t := widget.NewToolbar()
+
+			if c.IsEditMode() {
+				t.Append(NewEditToolbar(c.editAction()))
+			} else {
+				t.Append(NewToolbarClaudeAction(c.claudeAction()))
+				t.Append(widget.NewToolbarSeparator())
+				t.Append(widget.NewToolbarSpacer())
+				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }))
+				t.Append(widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }))
+				t.Append(NewEditToolbar(c.editAction()))
+			}
 
 			t.Refresh()
 			c.toolbar = t
