@@ -27,6 +27,7 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 	}
 
 	// structure to hold the raw content
+	// we don't want to assume the structure of the file, so we use a map
 	contentMap := make(map[string]interface{})
 
 	// read content as a json object
@@ -36,6 +37,7 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 	}
 
 	// find the mcp_servers key
+	// that is the key that contains the list of servers
 	mcpServersValue, ok := contentMap["mcpServers"]
 	if !ok {
 		return mcpServers, nil
@@ -57,6 +59,7 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 		if !ok {
 			return mcpServers, fmt.Errorf("invalid mcp server description for %s", key)
 		}
+
 		// read the command of the server (field is required)
 		command, ok := description["command"].(string)
 		if !ok {
@@ -65,19 +68,25 @@ func (c *ClaudeDesktopConfig) LoadMcpServers() ([]*McpServerDescription, error) 
 		entry.Configuration.Command = command
 
 		// args	is optional
-		args, ok := description["args"].([]string)
+		args, ok := description["args"].([]interface{})
 		if !ok {
 			entry.Configuration.Args = []string{}
 		} else {
-			entry.Configuration.Args = args
+			entry.Configuration.Args = []string{}
+			for _, arg := range args {
+				entry.Configuration.Args = append(entry.Configuration.Args, arg.(string))
+			}
 		}
 
 		// env is optional
-		env, ok := description["env"].(map[string]string)
+		env, ok := description["env"].(map[string]interface{})
 		if !ok {
 			entry.Configuration.Env = map[string]string{}
 		} else {
-			entry.Configuration.Env = env
+			entry.Configuration.Env = map[string]string{}
+			for key, value := range env {
+				entry.Configuration.Env[key] = value.(string)
+			}
 		}
 
 		// add the entry to the list

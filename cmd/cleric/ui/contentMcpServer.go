@@ -12,23 +12,23 @@ import (
 )
 
 type ContentMcpServer struct {
-	window          fyne.Window
-	mcpServer       *configuration.McpServerDescription
-	toolbar         *widget.Toolbar
-	listRefreshable ServerListActions
-	editMode        bool
+	window      fyne.Window
+	mcpServer   *configuration.McpServerDescription
+	toolbar     *widget.Toolbar
+	listActions ServerListActions
+	editMode    bool
 }
 
 func NewContentMcpServer(
 	window fyne.Window,
 	mcpServer *configuration.McpServerDescription,
-	listRefreshable ServerListActions,
+	listActions ServerListActions,
 ) *ContentMcpServer {
 	return &ContentMcpServer{
-		window:          window,
-		mcpServer:       mcpServer,
-		listRefreshable: listRefreshable,
-		editMode:        false,
+		window:      window,
+		mcpServer:   mcpServer,
+		listActions: listActions,
+		editMode:    false,
 	}
 }
 
@@ -47,15 +47,15 @@ func (c *ContentMcpServer) IsServerInClaude() bool {
 func (c *ContentMcpServer) AddToClaude() {
 	c.mcpServer.InConfiguration = true
 	c.toolbar.Refresh()
-	c.listRefreshable.RefreshSideMenu()
-	c.listRefreshable.SaveMcpServers()
+	c.listActions.RefreshSideMenu()
+	c.listActions.SaveMcpServers()
 }
 
 func (c *ContentMcpServer) RemoveFromClaude() {
 	c.mcpServer.InConfiguration = false
 	c.toolbar.Refresh()
-	c.listRefreshable.RefreshSideMenu()
-	c.listRefreshable.SaveMcpServers()
+	c.listActions.RefreshSideMenu()
+	c.listActions.SaveMcpServers()
 }
 
 func (c *ContentMcpServer) editAction() ToolbarEditAction {
@@ -68,12 +68,12 @@ func (c *ContentMcpServer) IsEditMode() bool {
 
 func (c *ContentMcpServer) CancelEditMode() {
 	c.editMode = false
-	c.listRefreshable.RefreshCurrentContent()
+	c.listActions.RefreshCurrentContent()
 }
 
 func (c *ContentMcpServer) EditMode() {
 	c.editMode = true
-	c.listRefreshable.RefreshCurrentContent()
+	c.listActions.RefreshCurrentContent()
 }
 
 func (c *ContentMcpServer) content() *MainContent {
@@ -103,7 +103,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			vbox.Add(c.newLabelTitle("Name"))
 			vbox.Add(c.newLabelValue("edit name", "name", c.mcpServer.Name, func(value string) {
 				c.mcpServer.Name = value
-				c.listRefreshable.RefreshCurrentContent()
+				c.listActions.RefreshCurrentContent()
 			}))
 			vbox.Add(widget.NewSeparator())
 
@@ -111,7 +111,8 @@ func (c *ContentMcpServer) content() *MainContent {
 			vbox.Add(c.newLabelTitle("Description"))
 			vbox.Add(c.newLabelValue("edit description", "description", c.mcpServer.Description, func(value string) {
 				c.mcpServer.Description = value
-				c.listRefreshable.RefreshCurrentContent()
+				c.listActions.RefreshCurrentContent()
+				c.listActions.SaveMcpServers()
 			}))
 			vbox.Add(widget.NewSeparator())
 
@@ -119,14 +120,19 @@ func (c *ContentMcpServer) content() *MainContent {
 			vbox.Add(c.newLabelTitle("Command"))
 			vbox.Add(c.newLabelValue("edit command", "command", c.mcpServer.Configuration.Command, func(value string) {
 				c.mcpServer.Configuration.Command = value
-				c.listRefreshable.RefreshCurrentContent()
+				c.listActions.RefreshCurrentContent()
+				c.listActions.SaveMcpServers()
 			}))
 			vbox.Add(widget.NewSeparator())
 
-			// Add row for Arguments
+			// Add rows for Arguments
 			argumentsVbox := container.NewVBox()
-			for _, arg := range c.mcpServer.Configuration.Args {
-				argumentsVbox.Add(c.newListValue(arg))
+			for index, arg := range c.mcpServer.Configuration.Args {
+				argumentsVbox.Add(c.newListValue(arg, func(value string) {
+					c.mcpServer.Configuration.Args[index] = value
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				}))
 			}
 			vbox.Add(c.newLabelTitle("Arguments"))
 			vbox.Add(argumentsVbox)
@@ -134,8 +140,11 @@ func (c *ContentMcpServer) content() *MainContent {
 			// if edit mode, add a button to add an argument
 			if c.IsEditMode() {
 				vbox.Add(widget.NewButton("Add Argument", func() {
-					c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, "")
-					c.listRefreshable.RefreshCurrentContent()
+					c.displayEditValue("Add Argument", "new argument", "", func(value string) {
+						c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
+						c.listActions.RefreshCurrentContent()
+						c.listActions.SaveMcpServers()
+					})
 				}))
 			}
 			vbox.Add(widget.NewSeparator())
@@ -183,7 +192,7 @@ func (c *ContentMcpServer) newLabelValue(title string, label string, value strin
 	if c.IsEditMode() {
 		t := widget.NewToolbar()
 		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
-			c.displayEditLabelValue(title, label, value, onSave)
+			c.displayEditValue(title, label, value, onSave)
 		}))
 		hbox.Add(t)
 	}
@@ -193,11 +202,13 @@ func (c *ContentMcpServer) newLabelValue(title string, label string, value strin
 	return hbox
 }
 
-func (c *ContentMcpServer) newListValue(value string) fyne.CanvasObject {
+func (c *ContentMcpServer) newListValue(value string, onSave func(string)) fyne.CanvasObject {
 	hbox := container.NewHBox()
 	if c.IsEditMode() {
 		t := widget.NewToolbar()
-		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() { fmt.Println("edit") }))
+		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
+			c.displayEditValue("Edit Argument", "argument", value, onSave)
+		}))
 		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
 		hbox.Add(t)
 	}
@@ -227,7 +238,8 @@ func (c *ContentMcpServer) newEnvValue(key string, value string) fyne.CanvasObje
 	return hbox
 }
 
-func (c *ContentMcpServer) displayEditLabelValue(title string, label string, value string, onSave func(string)) {
+// shows a dialog to edit a value
+func (c *ContentMcpServer) displayEditValue(title string, label string, value string, onSave func(string)) {
 	nameEntry := widget.NewEntry()
 	nameEntry.SetText(value)
 
