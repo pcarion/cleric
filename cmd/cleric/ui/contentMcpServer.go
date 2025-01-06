@@ -2,10 +2,12 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pcarion/cleric/pkg/configuration"
@@ -80,6 +82,7 @@ func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
+			// 2 different toolbar for edit mode and normal mode
 			t := widget.NewToolbar()
 
 			if c.IsEditMode() {
@@ -96,75 +99,126 @@ func (c *ContentMcpServer) content() *MainContent {
 			t.Refresh()
 			c.toolbar = t
 
-			// Create a vertical box to hold all rows
-			vbox := container.NewVBox()
+			// Create form elements
 
-			// Add row for Name
-			vbox.Add(c.newLabelTitle("Name"))
-			vbox.Add(c.newLabelValue("edit name", "name", c.mcpServer.Name, func(value string) {
-				c.mcpServer.Name = value
-				c.listActions.RefreshCurrentContent()
-			}))
-			vbox.Add(widget.NewSeparator())
-
-			// add row for description
-			vbox.Add(c.newLabelTitle("Description"))
-			vbox.Add(c.newLabelValue("edit description", "description", c.mcpServer.Description, func(value string) {
-				c.mcpServer.Description = value
-				c.listActions.RefreshCurrentContent()
-				c.listActions.SaveMcpServers()
-			}))
-			vbox.Add(widget.NewSeparator())
-
-			// Add row for Command
-			vbox.Add(c.newLabelTitle("Command"))
-			vbox.Add(c.newLabelValue("edit command", "command", c.mcpServer.Configuration.Command, func(value string) {
-				c.mcpServer.Configuration.Command = value
-				c.listActions.RefreshCurrentContent()
-				c.listActions.SaveMcpServers()
-			}))
-			vbox.Add(widget.NewSeparator())
-
-			// Add rows for Arguments
-			argumentsVbox := container.NewVBox()
-			for index, arg := range c.mcpServer.Configuration.Args {
-				argumentsVbox.Add(c.newListValue(arg, func(value string) {
-					c.mcpServer.Configuration.Args[index] = value
+			nameLabel := widget.NewLabel("Name")
+			nameLabel.TextStyle = fyne.TextStyle{Bold: true}
+			nameValue := widget.NewLabel(c.mcpServer.Name)
+			nameWidgets := container.NewHBox()
+			if c.IsEditMode() {
+				nameWidgets.Add(c.newEditValueButton("Edit name", "name", c.mcpServer.Name, func(value string) {
+					c.mcpServer.Name = value
 					c.listActions.RefreshCurrentContent()
 					c.listActions.SaveMcpServers()
 				}))
 			}
-			vbox.Add(c.newLabelTitle("Arguments"))
-			vbox.Add(argumentsVbox)
+			nameControls := container.New(layout.NewBorderLayout(nil, nil, nil, nameWidgets), nameWidgets, nameValue)
+
+			// add row for description
+			descriptionLabel := widget.NewLabel("Description")
+			descriptionLabel.TextStyle = fyne.TextStyle{Bold: true}
+			descriptionValue := widget.NewLabel(c.mcpServer.Description)
+			descriptionValue.TextStyle = fyne.TextStyle{Italic: true}
+			descriptionWidgets := container.NewHBox()
+			if c.IsEditMode() {
+				descriptionWidgets.Add(c.newEditValueButton("Edit description", "description", c.mcpServer.Description, func(value string) {
+					c.mcpServer.Description = value
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				}))
+			}
+			descriptionControls := container.New(layout.NewBorderLayout(nil, nil, nil, descriptionWidgets), descriptionWidgets, descriptionValue)
+
+			// Add row for Command
+			commandLabel := widget.NewLabel("Command")
+			commandLabel.TextStyle = fyne.TextStyle{Bold: true}
+			commandValue := widget.NewLabel(c.mcpServer.Configuration.Command)
+			commandValue.TextStyle = fyne.TextStyle{Monospace: true}
+			commandWidgets := container.NewHBox()
+			if c.IsEditMode() {
+				commandWidgets.Add(c.newEditValueButton("Edit command", "command", c.mcpServer.Configuration.Command, func(value string) {
+					c.mcpServer.Configuration.Command = value
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				}))
+			}
+			commandControls := container.New(layout.NewBorderLayout(nil, nil, nil, commandWidgets), commandWidgets, commandValue)
+
+			// Add rows for Arguments
+			argumentsLabel := widget.NewLabel("Arguments")
+			argumentsLabel.TextStyle = fyne.TextStyle{Bold: true}
+			argumentsValue := widget.NewLabel(strings.Join(c.mcpServer.Configuration.Args, "\n"))
+			argumentsValue.TextStyle = fyne.TextStyle{Monospace: true}
+			argumentsWidgets := container.NewHBox()
+			if c.IsEditMode() {
+				argumentsWidgets.Add(c.newEditValueButton("Edit arguments", "arguments", strings.Join(c.mcpServer.Configuration.Args, " "), func(value string) {
+					c.mcpServer.Configuration.Args = strings.Split(value, " ")
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				}))
+			}
+			argumentsControls := container.New(layout.NewBorderLayout(nil, nil, nil, argumentsWidgets), argumentsWidgets, argumentsValue)
+			// for index, arg := range c.mcpServer.Configuration.Args {
+			// 	argumentsVbox.Add(c.newListValue(arg, func(value string) {
+			// 		c.mcpServer.Configuration.Args[index] = value
+			// 		c.listActions.RefreshCurrentContent()
+			// 		c.listActions.SaveMcpServers()
+			// 	}))
+			// }
 
 			// if edit mode, add a button to add an argument
-			if c.IsEditMode() {
-				vbox.Add(widget.NewButton("Add Argument", func() {
-					c.displayEditValue("Add Argument", "new argument", "", func(value string) {
-						c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
-						c.listActions.RefreshCurrentContent()
-						c.listActions.SaveMcpServers()
-					})
-				}))
+			// if c.IsEditMode() {
+			// 	vbox.Add(widget.NewButton("Add Argument", func() {
+			// 		c.displayEditValue("Add Argument", "new argument", "", func(value string) {
+			// 			c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
+			// 			c.listActions.RefreshCurrentContent()
+			// 			c.listActions.SaveMcpServers()
+			// 		})
+			// 	}))
+			// }
+			// vbox.Add(widget.NewSeparator())
+
+			lstEnvVars := []string{}
+			for key, value := range c.mcpServer.Configuration.Env {
+				lstEnvVars = append(lstEnvVars, fmt.Sprintf("%s=%s", key, value))
 			}
-			vbox.Add(widget.NewSeparator())
 
 			// add row for environment variables
-			envVarsVbox := container.NewVBox()
-			for key, value := range c.mcpServer.Configuration.Env {
-				envVarsVbox.Add(c.newEnvValue(key, value))
-			}
-			vbox.Add(c.newLabelTitle("Environment Variables"))
-			vbox.Add(envVarsVbox)
-
-			// if edit mode, add a button to add an environment variable
+			envVarsLabel := widget.NewLabel("Environment Variables")
+			envVarsLabel.TextStyle = fyne.TextStyle{Bold: true}
+			envVarsValue := widget.NewLabel(strings.Join(lstEnvVars, "\n"))
+			envVarsValue.TextStyle = fyne.TextStyle{Monospace: true}
+			envVarsWidgets := container.NewHBox()
 			if c.IsEditMode() {
-				vbox.Add(widget.NewButton("Add Environment Variable", func() {
+				envVarsWidgets.Add(c.newEditValueButton("Edit environment variables", "environment variables", strings.Join(lstEnvVars, "\n"), func(value string) {
+					//					c.mcpServer.Configuration.Env = strings.Split(value, "\n")
+					//					c.listActions.RefreshCurrentContent()
+					//					c.listActions.SaveMcpServers()
 				}))
 			}
-			vbox.Add(widget.NewSeparator())
+			envVarsControls := container.New(layout.NewBorderLayout(nil, nil, nil, envVarsWidgets), envVarsWidgets, envVarsValue)
+			// for key, value := range c.mcpServer.Configuration.Env {
+			// 	envVarsWidgets.Add(c.newEnvValue(key, value))
+			// }
 
-			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(vbox))
+			// // if edit mode, add a button to add an environment variable
+			// if c.IsEditMode() {
+			// 	vbox.Add(widget.NewButton("Add Environment Variable", func() {
+			// 	}))
+			// }
+			// vbox.Add(widget.NewSeparator())
+
+			// v2
+			pageContent := container.New(
+				layout.NewFormLayout(),
+				nameLabel, nameControls,
+				descriptionLabel, descriptionControls,
+				commandLabel, commandControls,
+				argumentsLabel, argumentsControls,
+				envVarsLabel, envVarsControls,
+			)
+
+			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(pageContent))
 		},
 	}
 }
@@ -184,6 +238,13 @@ func (c *ContentMcpServer) newLabelTitle(title string) *widget.Label {
 	label := widget.NewLabel(title)
 	label.TextStyle = fyne.TextStyle{Bold: true}
 	return label
+}
+
+func (c *ContentMcpServer) newEditValueButton(title string, label string, value string, onSave func(string)) *widget.Button {
+	button := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), func() {
+		c.displayEditValue(title, label, value, onSave)
+	})
+	return button
 }
 
 func (c *ContentMcpServer) newLabelValue(title string, label string, value string, onSave func(string)) fyne.CanvasObject {
