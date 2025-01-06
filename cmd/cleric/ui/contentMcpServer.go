@@ -5,12 +5,14 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pcarion/cleric/pkg/configuration"
 )
 
 type ContentMcpServer struct {
+	window          fyne.Window
 	mcpServer       *configuration.McpServerDescription
 	toolbar         *widget.Toolbar
 	listRefreshable listRefreshable
@@ -18,10 +20,12 @@ type ContentMcpServer struct {
 }
 
 func NewContentMcpServer(
+	window fyne.Window,
 	mcpServer *configuration.McpServerDescription,
 	listRefreshable listRefreshable,
 ) *ContentMcpServer {
 	return &ContentMcpServer{
+		window:          window,
 		mcpServer:       mcpServer,
 		listRefreshable: listRefreshable,
 		editMode:        false,
@@ -94,18 +98,27 @@ func (c *ContentMcpServer) content() *MainContent {
 			vbox := container.NewVBox()
 
 			// Add row for Name
-			vbox.Add(newLabelTitle("Name"))
-			vbox.Add(newLabelValue(c.mcpServer.Name))
+			vbox.Add(c.newLabelTitle("Name"))
+			vbox.Add(c.newLabelValue("edit name", "name", c.mcpServer.Name, func(value string) {
+				c.mcpServer.Name = value
+				c.listRefreshable.RefreshCurrentContent()
+			}))
 			vbox.Add(widget.NewSeparator())
 
 			// add row for description
-			vbox.Add(newLabelTitle("Description"))
-			vbox.Add(newLabelValue(c.mcpServer.Description))
+			vbox.Add(c.newLabelTitle("Description"))
+			vbox.Add(c.newLabelValue("edit description", "description", c.mcpServer.Description, func(value string) {
+				c.mcpServer.Description = value
+				c.listRefreshable.RefreshCurrentContent()
+			}))
 			vbox.Add(widget.NewSeparator())
 
 			// Add row for Command
-			vbox.Add(newLabelTitle("Command"))
-			vbox.Add(newLabelValue(c.mcpServer.Configuration.Command))
+			vbox.Add(c.newLabelTitle("Command"))
+			vbox.Add(c.newLabelValue("edit command", "command", c.mcpServer.Configuration.Command, func(value string) {
+				c.mcpServer.Configuration.Command = value
+				c.listRefreshable.RefreshCurrentContent()
+			}))
 			vbox.Add(widget.NewSeparator())
 
 			// Add row for Arguments
@@ -113,7 +126,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			for _, arg := range c.mcpServer.Configuration.Args {
 				argumentsVbox.Add(widget.NewLabel(arg))
 			}
-			vbox.Add(newLabelTitle("Arguments"))
+			vbox.Add(c.newLabelTitle("Arguments"))
 			vbox.Add(argumentsVbox)
 			vbox.Add(widget.NewSeparator())
 
@@ -122,7 +135,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			for key, value := range c.mcpServer.Configuration.Env {
 				envVarsVbox.Add(widget.NewLabel(key + "=" + value))
 			}
-			vbox.Add(newLabelTitle("Environment Variables"))
+			vbox.Add(c.newLabelTitle("Environment Variables"))
 			vbox.Add(envVarsVbox)
 			vbox.Add(widget.NewSeparator())
 
@@ -142,14 +155,44 @@ func (c *ContentMcpServer) icon() fyne.Resource {
 	return theme.CheckButtonIcon()
 }
 
-func newLabelTitle(title string) *widget.Label {
+func (c *ContentMcpServer) newLabelTitle(title string) *widget.Label {
 	label := widget.NewLabel(title)
 	label.TextStyle = fyne.TextStyle{Bold: true}
 	return label
 }
 
-func newLabelValue(value string) fyne.CanvasObject {
-	label := widget.NewLabel(value)
-	label.TextStyle = fyne.TextStyle{Monospace: true}
-	return label
+func (c *ContentMcpServer) newLabelValue(title string, label string, value string, onSave func(string)) fyne.CanvasObject {
+	hbox := container.NewHBox()
+	lbl := widget.NewLabel(value)
+	lbl.TextStyle = fyne.TextStyle{Monospace: true}
+	if c.IsEditMode() {
+		hbox.Add(widget.NewButton("Edit", func() {
+			c.displayEditLabelValue(title, label, value, onSave)
+		}))
+	}
+	hbox.Add(lbl)
+	return hbox
+}
+
+func (c *ContentMcpServer) displayEditLabelValue(title string, label string, value string, onSave func(string)) {
+	nameEntry := widget.NewEntry()
+	nameEntry.SetText(value)
+
+	dialog := dialog.NewForm(
+		title,
+		"Save",
+		"Cancel",
+		[]*widget.FormItem{
+			{Text: label, Widget: nameEntry},
+		},
+		func(confirm bool) {
+			if confirm {
+				value = nameEntry.Text
+				onSave(value)
+			}
+		},
+		c.window,
+	)
+	dialog.Resize(fyne.NewSize(600, 300))
+	dialog.Show()
 }
