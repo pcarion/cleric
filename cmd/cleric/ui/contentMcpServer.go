@@ -100,6 +100,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			c.toolbar = t
 
 			// Create form elements
+			formBuilder := NewFormBuilder()
 
 			nameLabel := widget.NewLabel("Name")
 			nameLabel.TextStyle = fyne.TextStyle{Bold: true}
@@ -113,6 +114,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				}))
 			}
 			nameControls := container.New(layout.NewBorderLayout(nil, nil, nil, nameWidgets), nameWidgets, nameValue)
+			formBuilder.AddField(nameLabel, nameControls)
 
 			// add row for description
 			descriptionLabel := widget.NewLabel("Description")
@@ -128,6 +130,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				}))
 			}
 			descriptionControls := container.New(layout.NewBorderLayout(nil, nil, nil, descriptionWidgets), descriptionWidgets, descriptionValue)
+			formBuilder.AddField(descriptionLabel, descriptionControls)
 
 			// Add row for Command
 			commandLabel := widget.NewLabel("Command")
@@ -143,6 +146,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				}))
 			}
 			commandControls := container.New(layout.NewBorderLayout(nil, nil, nil, commandWidgets), commandWidgets, commandValue)
+			formBuilder.AddField(commandLabel, commandControls)
 
 			// Add rows for Arguments
 			argumentsLabel := widget.NewLabel("Arguments")
@@ -158,6 +162,8 @@ func (c *ContentMcpServer) content() *MainContent {
 				}))
 			}
 			argumentsControls := container.New(layout.NewBorderLayout(nil, nil, nil, argumentsWidgets), argumentsWidgets, argumentsValue)
+			formBuilder.AddField(argumentsLabel, argumentsControls)
+
 			// for index, arg := range c.mcpServer.Configuration.Args {
 			// 	argumentsVbox.Add(c.newListValue(arg, func(value string) {
 			// 		c.mcpServer.Configuration.Args[index] = value
@@ -197,6 +203,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				}))
 			}
 			envVarsControls := container.New(layout.NewBorderLayout(nil, nil, nil, envVarsWidgets), envVarsWidgets, envVarsValue)
+			formBuilder.AddField(envVarsLabel, envVarsControls)
 			// for key, value := range c.mcpServer.Configuration.Env {
 			// 	envVarsWidgets.Add(c.newEnvValue(key, value))
 			// }
@@ -209,15 +216,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			// vbox.Add(widget.NewSeparator())
 
 			// v2
-			pageContent := container.New(
-				layout.NewFormLayout(),
-				nameLabel, nameControls,
-				descriptionLabel, descriptionControls,
-				commandLabel, commandControls,
-				argumentsLabel, argumentsControls,
-				envVarsLabel, envVarsControls,
-			)
-
+			pageContent := formBuilder.GetContainer()
 			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(pageContent))
 		},
 	}
