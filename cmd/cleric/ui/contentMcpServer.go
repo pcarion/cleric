@@ -15,14 +15,14 @@ type ContentMcpServer struct {
 	window          fyne.Window
 	mcpServer       *configuration.McpServerDescription
 	toolbar         *widget.Toolbar
-	listRefreshable listRefreshable
+	listRefreshable ServerListActions
 	editMode        bool
 }
 
 func NewContentMcpServer(
 	window fyne.Window,
 	mcpServer *configuration.McpServerDescription,
-	listRefreshable listRefreshable,
+	listRefreshable ServerListActions,
 ) *ContentMcpServer {
 	return &ContentMcpServer{
 		window:          window,
@@ -48,12 +48,14 @@ func (c *ContentMcpServer) AddToClaude() {
 	c.mcpServer.InConfiguration = true
 	c.toolbar.Refresh()
 	c.listRefreshable.RefreshSideMenu()
+	c.listRefreshable.SaveMcpServers()
 }
 
 func (c *ContentMcpServer) RemoveFromClaude() {
 	c.mcpServer.InConfiguration = false
 	c.toolbar.Refresh()
 	c.listRefreshable.RefreshSideMenu()
+	c.listRefreshable.SaveMcpServers()
 }
 
 func (c *ContentMcpServer) editAction() ToolbarEditAction {

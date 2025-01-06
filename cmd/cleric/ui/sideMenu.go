@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"errors"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
@@ -35,7 +37,11 @@ func NewSideMenu(refreshMainContent func()) *SideMenu {
 	}
 }
 
-func (s *SideMenu) AsListRefreshable() listRefreshable {
+func (s *SideMenu) SaveMcpServers() {
+	s.config.SaveMcpServers(s.mcpServers)
+}
+
+func (s *SideMenu) AsServerListActions() ServerListActions {
 	return s
 }
 
@@ -63,10 +69,16 @@ func (s *SideMenu) MakeNavigation(
 	// add the welcome item
 	data = append(data, NewContentWelcome().menuItem())
 
+	// create the content for each mcp server
 	for _, server := range s.mcpServers {
-		data = append(data, NewContentMcpServer(window, server, s.AsListRefreshable()).menuItem())
+		data = append(data, NewContentMcpServer(
+			window,
+			server,
+			s.AsServerListActions(),
+		).menuItem())
 	}
 
+	// add the action to add a new mcp server
 	data = append(data, NewContentAddMcpServer().menuItem())
 
 	s.list = widget.NewList(
@@ -109,4 +121,27 @@ func (s *SideMenu) MakeNavigation(
 
 func (s *SideMenu) SelectItem(id widget.ListItemID) {
 	s.list.Select(id)
+}
+
+func (s *SideMenu) ValidateNewName(name string) error {
+	for _, server := range s.mcpServers {
+		if server.Name == name {
+			return errors.New("a server with this name already exists")
+		}
+	}
+	return nil
+}
+
+func (s *SideMenu) ValidateExistingName(uuid string) func(name string) error {
+	return func(name string) error {
+		for _, server := range s.mcpServers {
+			if server.Uuid == uuid {
+				continue
+			}
+			if server.Name == name {
+				return errors.New("a server with this name already exists")
+			}
+		}
+		return nil
+	}
 }
