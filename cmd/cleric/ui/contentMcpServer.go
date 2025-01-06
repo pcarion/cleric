@@ -148,21 +148,36 @@ func (c *ContentMcpServer) content() *MainContent {
 			commandControls := container.New(layout.NewBorderLayout(nil, nil, nil, commandWidgets), commandWidgets, commandValue)
 			formBuilder.AddField(commandLabel, commandControls)
 
-			// Add rows for Arguments
-			argumentsLabel := widget.NewLabel("Arguments")
-			argumentsLabel.TextStyle = fyne.TextStyle{Bold: true}
-			argumentsValue := widget.NewLabel(strings.Join(c.mcpServer.Configuration.Args, "\n"))
-			argumentsValue.TextStyle = fyne.TextStyle{Monospace: true}
-			argumentsWidgets := container.NewHBox()
 			if c.IsEditMode() {
-				argumentsWidgets.Add(c.newEditValueButton("Edit arguments", "arguments", strings.Join(c.mcpServer.Configuration.Args, " "), func(value string) {
-					c.mcpServer.Configuration.Args = strings.Split(value, " ")
-					c.listActions.RefreshCurrentContent()
-					c.listActions.SaveMcpServers()
-				}))
+				for index, value := range c.mcpServer.Configuration.Args {
+					argLabel := widget.NewLabel(fmt.Sprintf("Argument %d", index))
+					argLabel.TextStyle = fyne.TextStyle{Bold: true}
+					argValue := widget.NewLabel(value)
+					argValue.TextStyle = fyne.TextStyle{Monospace: true}
+					argWidgets := container.NewHBox()
+					argWidgets.Add(c.newDeleteValueButton(func() {
+						c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args[:index], c.mcpServer.Configuration.Args[index+1:]...)
+						c.listActions.RefreshCurrentContent()
+						c.listActions.SaveMcpServers()
+					}))
+					argWidgets.Add(c.newEditValueButton("Edit argument", "argument", value, func(newValue string) {
+						c.mcpServer.Configuration.Args[index] = newValue
+						c.listActions.RefreshCurrentContent()
+						c.listActions.SaveMcpServers()
+					}))
+					argControls := container.New(layout.NewBorderLayout(nil, nil, nil, argWidgets), argWidgets, argValue)
+					formBuilder.AddField(argLabel, argControls)
+				}
+			} else {
+				// Add rows for Arguments
+				argumentsLabel := widget.NewLabel("Arguments")
+				argumentsLabel.TextStyle = fyne.TextStyle{Bold: true}
+				argumentsValue := widget.NewLabel(strings.Join(c.mcpServer.Configuration.Args, "\n"))
+				argumentsValue.TextStyle = fyne.TextStyle{Monospace: true}
+				argumentsWidgets := container.NewHBox()
+				argumentsControls := container.New(layout.NewBorderLayout(nil, nil, nil, argumentsWidgets), argumentsWidgets, argumentsValue)
+				formBuilder.AddField(argumentsLabel, argumentsControls)
 			}
-			argumentsControls := container.New(layout.NewBorderLayout(nil, nil, nil, argumentsWidgets), argumentsWidgets, argumentsValue)
-			formBuilder.AddField(argumentsLabel, argumentsControls)
 
 			// for index, arg := range c.mcpServer.Configuration.Args {
 			// 	argumentsVbox.Add(c.newListValue(arg, func(value string) {
@@ -242,6 +257,13 @@ func (c *ContentMcpServer) newLabelTitle(title string) *widget.Label {
 func (c *ContentMcpServer) newEditValueButton(title string, label string, value string, onSave func(string)) *widget.Button {
 	button := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), func() {
 		c.displayEditValue(title, label, value, onSave)
+	})
+	return button
+}
+
+func (c *ContentMcpServer) newDeleteValueButton(onDelete func()) *widget.Button {
+	button := widget.NewButtonWithIcon("", theme.DeleteIcon(), func() {
+		onDelete()
 	})
 	return button
 }
