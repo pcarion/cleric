@@ -128,6 +128,14 @@ func (c *ContentMcpServer) content() *MainContent {
 			}
 			vbox.Add(c.newLabelTitle("Arguments"))
 			vbox.Add(argumentsVbox)
+
+			// if edit mode, add a button to add an argument
+			if c.IsEditMode() {
+				vbox.Add(widget.NewButton("Add Argument", func() {
+					c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, "")
+					c.listRefreshable.RefreshCurrentContent()
+				}))
+			}
 			vbox.Add(widget.NewSeparator())
 
 			// add row for environment variables
@@ -137,6 +145,12 @@ func (c *ContentMcpServer) content() *MainContent {
 			}
 			vbox.Add(c.newLabelTitle("Environment Variables"))
 			vbox.Add(envVarsVbox)
+
+			// if edit mode, add a button to add an environment variable
+			if c.IsEditMode() {
+				vbox.Add(widget.NewButton("Add Environment Variable", func() {
+				}))
+			}
 			vbox.Add(widget.NewSeparator())
 
 			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(vbox))
@@ -183,8 +197,6 @@ func (c *ContentMcpServer) newListValue(value string) fyne.CanvasObject {
 		t := widget.NewToolbar()
 		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() { fmt.Println("edit") }))
 		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
-		t.Append(widget.NewToolbarAction(theme.UploadIcon(), func() { fmt.Println("up") }))
-		t.Append(widget.NewToolbarAction(theme.DownloadIcon(), func() { fmt.Println("down") }))
 		hbox.Add(t)
 	}
 	lbl := widget.NewLabel(value)
@@ -205,10 +217,7 @@ func (c *ContentMcpServer) newEnvValue(key string, value string) fyne.CanvasObje
 	lblKey.TextStyle = fyne.TextStyle{Monospace: true}
 	hbox.Add(lblKey)
 
-	// Create a colored version of the icon
-	coloredIcon := theme.NewThemedResource(theme.MoreVerticalIcon())
-	coloredIcon.ColorName = theme.ColorNameHyperlink
-	hbox.Add(widget.NewIcon(coloredIcon))
+	hbox.Add(widget.NewIcon(theme.NewThemedResource(theme.MoreVerticalIcon())))
 
 	lblValue := widget.NewLabel(value)
 	lblValue.TextStyle = fyne.TextStyle{Monospace: true}

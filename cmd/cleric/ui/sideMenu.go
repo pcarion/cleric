@@ -67,6 +67,8 @@ func (s *SideMenu) MakeNavigation(
 		data = append(data, NewContentMcpServer(window, server, s.AsListRefreshable()).menuItem())
 	}
 
+	data = append(data, NewContentAddMcpServer().menuItem())
+
 	s.list = widget.NewList(
 		func() int {
 			return len(data)
