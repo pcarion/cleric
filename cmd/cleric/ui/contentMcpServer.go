@@ -89,10 +89,9 @@ func (c *ContentMcpServer) content() *MainContent {
 				t.Append(NewEditToolbar(c.editAction()))
 			} else {
 				t.Append(NewToolbarClaudeAction(c.claudeAction()))
-				t.Append(widget.NewToolbarSeparator())
 				t.Append(widget.NewToolbarSpacer())
 				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }))
-				t.Append(widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }))
+				//				t.Append(widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }))
 				t.Append(NewEditToolbar(c.editAction()))
 			}
 
@@ -107,7 +106,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			nameValue := widget.NewLabel(c.mcpServer.Name)
 			nameWidgets := container.NewHBox()
 			if c.IsEditMode() {
-				nameWidgets.Add(c.newEditValueButton("Edit name", "name", c.mcpServer.Name, func(value string) {
+				nameWidgets.Add(c.newEditValueButtonWithValidator("Edit name", "name", c.mcpServer.Name, c.listActions.ValidateExistingName(c.mcpServer.Uuid), func(value string) {
 					c.mcpServer.Name = value
 					c.listActions.RefreshCurrentContent()
 					c.listActions.SaveMcpServers()
@@ -168,6 +167,15 @@ func (c *ContentMcpServer) content() *MainContent {
 					argControls := container.New(layout.NewBorderLayout(nil, nil, nil, argWidgets), argWidgets, argValue)
 					formBuilder.AddField(argLabel, argControls)
 				}
+				addArgumentLabel := widget.NewLabel("")
+				addArgumentButton := c.newAddValueButton("Add Argument", "argument", func(value string) {
+					c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				})
+				addArgumentControls := container.NewHBox()
+				addArgumentControls.Add(addArgumentButton)
+				formBuilder.AddField(addArgumentLabel, addArgumentControls)
 			} else {
 				// Add rows for Arguments
 				argumentsLabel := widget.NewLabel("Arguments")
@@ -179,26 +187,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				formBuilder.AddField(argumentsLabel, argumentsControls)
 			}
 
-			// for index, arg := range c.mcpServer.Configuration.Args {
-			// 	argumentsVbox.Add(c.newListValue(arg, func(value string) {
-			// 		c.mcpServer.Configuration.Args[index] = value
-			// 		c.listActions.RefreshCurrentContent()
-			// 		c.listActions.SaveMcpServers()
-			// 	}))
-			// }
-
-			// if edit mode, add a button to add an argument
-			// if c.IsEditMode() {
-			// 	vbox.Add(widget.NewButton("Add Argument", func() {
-			// 		c.displayEditValue("Add Argument", "new argument", "", func(value string) {
-			// 			c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
-			// 			c.listActions.RefreshCurrentContent()
-			// 			c.listActions.SaveMcpServers()
-			// 		})
-			// 	}))
-			// }
-			// vbox.Add(widget.NewSeparator())
-
+			// prepare list of environment variables to be displayed
 			lstEnvVars := []string{}
 			for key, value := range c.mcpServer.Configuration.Env {
 				lstEnvVars = append(lstEnvVars, fmt.Sprintf("%s=%s", key, value))
@@ -248,15 +237,23 @@ func (c *ContentMcpServer) icon() fyne.Resource {
 	return theme.CheckButtonIcon()
 }
 
-func (c *ContentMcpServer) newLabelTitle(title string) *widget.Label {
-	label := widget.NewLabel(title)
-	label.TextStyle = fyne.TextStyle{Bold: true}
-	return label
+func (c *ContentMcpServer) newEditValueButtonWithValidator(title string, label string, value string, validator fyne.StringValidator, onSave func(string)) *widget.Button {
+	button := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), func() {
+		c.displayEditValue(title, label, value, validator, onSave)
+	})
+	return button
 }
 
 func (c *ContentMcpServer) newEditValueButton(title string, label string, value string, onSave func(string)) *widget.Button {
 	button := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), func() {
-		c.displayEditValue(title, label, value, onSave)
+		c.displayEditValue(title, label, value, nil, onSave)
+	})
+	return button
+}
+
+func (c *ContentMcpServer) newAddValueButton(title string, label string, onSave func(string)) *widget.Button {
+	button := widget.NewButtonWithIcon(title, theme.ContentAddIcon(), func() {
+		c.displayEditValue(title, label, "", nil, onSave)
 	})
 	return button
 }
@@ -268,61 +265,14 @@ func (c *ContentMcpServer) newDeleteValueButton(onDelete func()) *widget.Button 
 	return button
 }
 
-func (c *ContentMcpServer) newLabelValue(title string, label string, value string, onSave func(string)) fyne.CanvasObject {
-	hbox := container.NewHBox()
-
-	if c.IsEditMode() {
-		t := widget.NewToolbar()
-		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
-			c.displayEditValue(title, label, value, onSave)
-		}))
-		hbox.Add(t)
-	}
-	lbl := widget.NewLabel(value)
-	lbl.TextStyle = fyne.TextStyle{Monospace: true}
-	hbox.Add(lbl)
-	return hbox
-}
-
-func (c *ContentMcpServer) newListValue(value string, onSave func(string)) fyne.CanvasObject {
-	hbox := container.NewHBox()
-	if c.IsEditMode() {
-		t := widget.NewToolbar()
-		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
-			c.displayEditValue("Edit Argument", "argument", value, onSave)
-		}))
-		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
-		hbox.Add(t)
-	}
-	lbl := widget.NewLabel(value)
-	lbl.TextStyle = fyne.TextStyle{Monospace: true}
-	hbox.Add(lbl)
-	return hbox
-}
-
-func (c *ContentMcpServer) newEnvValue(key string, value string) fyne.CanvasObject {
-	hbox := container.NewHBox()
-	if c.IsEditMode() {
-		t := widget.NewToolbar()
-		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() { fmt.Println("edit") }))
-		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
-		hbox.Add(t)
-	}
-	lblKey := widget.NewLabel(key)
-	lblKey.TextStyle = fyne.TextStyle{Monospace: true}
-	hbox.Add(lblKey)
-
-	hbox.Add(widget.NewIcon(theme.NewThemedResource(theme.MoreVerticalIcon())))
-
-	lblValue := widget.NewLabel(value)
-	lblValue.TextStyle = fyne.TextStyle{Monospace: true}
-	hbox.Add(lblValue)
-	return hbox
-}
-
 // shows a dialog to edit a value
-func (c *ContentMcpServer) displayEditValue(title string, label string, value string, onSave func(string)) {
+func (c *ContentMcpServer) displayEditValue(title string, label string, value string, validator fyne.StringValidator, onSave func(string)) {
 	nameEntry := widget.NewEntry()
+	hintText := ""
+	if validator != nil {
+		nameEntry.Validator = validator
+		hintText = "Must be unique and be only alphanumeric characters"
+	}
 	nameEntry.SetText(value)
 
 	dialog := dialog.NewForm(
@@ -330,7 +280,7 @@ func (c *ContentMcpServer) displayEditValue(title string, label string, value st
 		"Save",
 		"Cancel",
 		[]*widget.FormItem{
-			{Text: label, Widget: nameEntry},
+			{Text: label, Widget: nameEntry, HintText: hintText},
 		},
 		func(confirm bool) {
 			if confirm {

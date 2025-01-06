@@ -134,6 +134,27 @@ func (s *SideMenu) ValidateNewName(name string) error {
 
 func (s *SideMenu) ValidateExistingName(uuid string) func(name string) error {
 	return func(name string) error {
+		// Check for empty string
+		if len(name) == 0 {
+			return errors.New("name cannot be empty")
+		}
+
+		// Check if name starts with a number
+		if name[0] >= '0' && name[0] <= '9' {
+			return errors.New("name cannot start with a number")
+		}
+
+		// Check if name contains only alphanumeric characters and underscore
+		for _, char := range name {
+			if !((char >= 'a' && char <= 'z') ||
+				(char >= 'A' && char <= 'Z') ||
+				(char >= '0' && char <= '9') ||
+				char == '_') {
+				return errors.New("name can only contain letters, numbers, and underscores")
+			}
+		}
+
+		// Check for duplicate names
 		for _, server := range s.mcpServers {
 			if server.Uuid == uuid {
 				continue
@@ -142,6 +163,7 @@ func (s *SideMenu) ValidateExistingName(uuid string) func(name string) error {
 				return errors.New("a server with this name already exists")
 			}
 		}
+
 		return nil
 	}
 }
