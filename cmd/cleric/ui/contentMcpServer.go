@@ -124,7 +124,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			// Add row for Arguments
 			argumentsVbox := container.NewVBox()
 			for _, arg := range c.mcpServer.Configuration.Args {
-				argumentsVbox.Add(widget.NewLabel(arg))
+				argumentsVbox.Add(c.newListValue(arg))
 			}
 			vbox.Add(c.newLabelTitle("Arguments"))
 			vbox.Add(argumentsVbox)
@@ -133,7 +133,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			// add row for environment variables
 			envVarsVbox := container.NewVBox()
 			for key, value := range c.mcpServer.Configuration.Env {
-				envVarsVbox.Add(widget.NewLabel(key + "=" + value))
+				envVarsVbox.Add(c.newEnvValue(key, value))
 			}
 			vbox.Add(c.newLabelTitle("Environment Variables"))
 			vbox.Add(envVarsVbox)
@@ -163,14 +163,56 @@ func (c *ContentMcpServer) newLabelTitle(title string) *widget.Label {
 
 func (c *ContentMcpServer) newLabelValue(title string, label string, value string, onSave func(string)) fyne.CanvasObject {
 	hbox := container.NewHBox()
-	lbl := widget.NewLabel(value)
-	lbl.TextStyle = fyne.TextStyle{Monospace: true}
+
 	if c.IsEditMode() {
-		hbox.Add(widget.NewButton("Edit", func() {
+		t := widget.NewToolbar()
+		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
 			c.displayEditLabelValue(title, label, value, onSave)
 		}))
+		hbox.Add(t)
 	}
+	lbl := widget.NewLabel(value)
+	lbl.TextStyle = fyne.TextStyle{Monospace: true}
 	hbox.Add(lbl)
+	return hbox
+}
+
+func (c *ContentMcpServer) newListValue(value string) fyne.CanvasObject {
+	hbox := container.NewHBox()
+	if c.IsEditMode() {
+		t := widget.NewToolbar()
+		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() { fmt.Println("edit") }))
+		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
+		t.Append(widget.NewToolbarAction(theme.UploadIcon(), func() { fmt.Println("up") }))
+		t.Append(widget.NewToolbarAction(theme.DownloadIcon(), func() { fmt.Println("down") }))
+		hbox.Add(t)
+	}
+	lbl := widget.NewLabel(value)
+	lbl.TextStyle = fyne.TextStyle{Monospace: true}
+	hbox.Add(lbl)
+	return hbox
+}
+
+func (c *ContentMcpServer) newEnvValue(key string, value string) fyne.CanvasObject {
+	hbox := container.NewHBox()
+	if c.IsEditMode() {
+		t := widget.NewToolbar()
+		t.Append(widget.NewToolbarAction(theme.DocumentCreateIcon(), func() { fmt.Println("edit") }))
+		t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("cut") }))
+		hbox.Add(t)
+	}
+	lblKey := widget.NewLabel(key)
+	lblKey.TextStyle = fyne.TextStyle{Monospace: true}
+	hbox.Add(lblKey)
+
+	// Create a colored version of the icon
+	coloredIcon := theme.NewThemedResource(theme.MoreVerticalIcon())
+	coloredIcon.ColorName = theme.ColorNameHyperlink
+	hbox.Add(widget.NewIcon(coloredIcon))
+
+	lblValue := widget.NewLabel(value)
+	lblValue.TextStyle = fyne.TextStyle{Monospace: true}
+	hbox.Add(lblValue)
 	return hbox
 }
 
