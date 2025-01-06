@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -26,7 +24,6 @@ func main() {
 	}
 
 	refreshMainContent := func() {
-		fmt.Printf("@@ main>refreshMainContent()\n")
 		if currentMainContent != nil {
 			mainContentStack.Objects = []fyne.CanvasObject{currentMainContent.View(myWindow)}
 			mainContentStack.Refresh()

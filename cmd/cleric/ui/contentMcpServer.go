@@ -71,7 +71,6 @@ func (c *ContentMcpServer) EditMode() {
 }
 
 func (c *ContentMcpServer) content() *MainContent {
-	fmt.Printf("@@ content() - editMode:%t\n", c.editMode)
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
@@ -95,63 +94,37 @@ func (c *ContentMcpServer) content() *MainContent {
 			vbox := container.NewVBox()
 
 			// Add row for Name
-			label := widget.NewLabel("Name")
-			label.TextStyle = fyne.TextStyle{Bold: true}
-			nameRow := container.NewGridWithColumns(3,
-				label,
-				widget.NewLabel(c.mcpServer.Name),
-				widget.NewButton(fmt.Sprintf("Edit (%t)", c.editMode), func() {
-					// TODO: Implement edit functionality
-				}),
-			)
-			vbox.Add(nameRow)
+			vbox.Add(newLabelTitle("Name"))
+			vbox.Add(newLabelValue(c.mcpServer.Name))
+			vbox.Add(widget.NewSeparator())
+
 			// add row for description
-			descriptionRow := container.NewGridWithColumns(3,
-				widget.NewLabel("Description"),
-				widget.NewLabel(c.mcpServer.Description),
-				widget.NewButton("Edit", func() {
-					// TODO: Implement edit functionality
-				}),
-			)
-			vbox.Add(descriptionRow)
+			vbox.Add(newLabelTitle("Description"))
+			vbox.Add(newLabelValue(c.mcpServer.Description))
+			vbox.Add(widget.NewSeparator())
 
 			// Add row for Command
-			commandRow := container.NewGridWithColumns(3,
-				widget.NewLabel("Command"),
-				widget.NewLabel(c.mcpServer.Configuration.Command),
-				widget.NewButton("Edit", func() {
-					// TODO: Implement edit functionality
-				}),
-			)
-			vbox.Add(commandRow)
+			vbox.Add(newLabelTitle("Command"))
+			vbox.Add(newLabelValue(c.mcpServer.Configuration.Command))
+			vbox.Add(widget.NewSeparator())
 
 			// Add row for Arguments
 			argumentsVbox := container.NewVBox()
 			for _, arg := range c.mcpServer.Configuration.Args {
 				argumentsVbox.Add(widget.NewLabel(arg))
 			}
-			argsRow := container.NewGridWithColumns(3,
-				widget.NewLabel("Arguments"),
-				argumentsVbox,
-				widget.NewButton("Edit", func() {
-					// TODO: Implement edit functionality
-				}),
-			)
-			vbox.Add(argsRow)
+			vbox.Add(newLabelTitle("Arguments"))
+			vbox.Add(argumentsVbox)
+			vbox.Add(widget.NewSeparator())
 
 			// add row for environment variables
 			envVarsVbox := container.NewVBox()
 			for key, value := range c.mcpServer.Configuration.Env {
 				envVarsVbox.Add(widget.NewLabel(key + "=" + value))
 			}
-			envVarsRow := container.NewGridWithColumns(3,
-				widget.NewLabel("Environment Variables"),
-				envVarsVbox,
-				widget.NewButton("Edit", func() {
-					// TODO: Implement edit functionality
-				}),
-			)
-			vbox.Add(envVarsRow)
+			vbox.Add(newLabelTitle("Environment Variables"))
+			vbox.Add(envVarsVbox)
+			vbox.Add(widget.NewSeparator())
 
 			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(vbox))
 		},
@@ -167,4 +140,16 @@ func (c *ContentMcpServer) icon() fyne.Resource {
 		return theme.CheckButtonCheckedIcon()
 	}
 	return theme.CheckButtonIcon()
+}
+
+func newLabelTitle(title string) *widget.Label {
+	label := widget.NewLabel(title)
+	label.TextStyle = fyne.TextStyle{Bold: true}
+	return label
+}
+
+func newLabelValue(value string) fyne.CanvasObject {
+	label := widget.NewLabel(value)
+	label.TextStyle = fyne.TextStyle{Monospace: true}
+	return label
 }
