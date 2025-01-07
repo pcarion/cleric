@@ -1,6 +1,8 @@
 package ui
 
-import "fyne.io/fyne/v2"
+import (
+	"fyne.io/fyne/v2"
+)
 
 type MainContent struct {
 	Title string
@@ -15,4 +17,5 @@ type ServerListActions interface {
 	ValidateNewName(name string) error
 	// can be used as validators for the name of an existing mcp server
 	ValidateExistingName(uuid string) func(name string) error
+	DeleteMcpServer(uuid string)
 }

@@ -167,3 +167,12 @@ func (s *SideMenu) ValidateExistingName(uuid string) func(name string) error {
 		return nil
 	}
 }
+
+func (s *SideMenu) DeleteMcpServer(uuid string) {
+	for i, server := range s.mcpServers {
+		if server.Uuid == uuid {
+			s.mcpServers = append(s.mcpServers[:i], s.mcpServers[i+1:]...)
+			break
+		}
+	}
+}

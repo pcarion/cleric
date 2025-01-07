@@ -90,7 +90,9 @@ func (c *ContentMcpServer) content() *MainContent {
 			} else {
 				t.Append(NewToolbarClaudeAction(c.claudeAction()))
 				t.Append(widget.NewToolbarSpacer())
-				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() { fmt.Println("Cut") }))
+				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() {
+					c.DeleteMcpServer(c.mcpServer.Uuid)
+				}))
 				//				t.Append(widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }))
 				t.Append(NewEditToolbar(c.editAction()))
 			}
@@ -292,4 +294,20 @@ func (c *ContentMcpServer) displayEditValue(title string, label string, value st
 	)
 	dialog.Resize(fyne.NewSize(600, 300))
 	dialog.Show()
+}
+
+func (c *ContentMcpServer) DeleteMcpServer(uuid string) {
+	// ask for confirmation
+	fmt.Println("delete MCP server", uuid)
+	cnf := dialog.NewConfirm("Delete MCP Server", "Are you sure you want to delete this server?", func(confirm bool) {
+		if confirm {
+			// we remove the server from the list
+			c.listActions.DeleteMcpServer(uuid)
+			c.listActions.RefreshSideMenu()
+			c.listActions.SaveMcpServers()
+		}
+	}, c.window)
+	cnf.SetDismissText("Cancel")
+	cnf.SetConfirmText("Delete")
+	cnf.Show()
 }
