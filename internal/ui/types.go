@@ -12,7 +12,7 @@ type MainContent struct {
 
 type ServerListActions interface {
 	ResetListScroll()
-	ResetListToServer(uuid string)
+	ResetListToContentId(contentId string)
 	RefreshCurrentContent()
 	RefreshSideMenu()
 	SaveMcpServers()

@@ -35,9 +35,6 @@ func (c *ContentAddMcpServer) content() *MainContent {
 			nameEntry := widget.NewEntry()
 			nameEntry.SetPlaceHolder("Server Name")
 			nameEntry.Validator = func(s string) error {
-				if !isValidServerName(s) {
-					return errors.New("name can only contain letters, numbers, and underscores")
-				}
 				if c.actions.ValidateNewMcpServerName(s) != nil {
 					return errors.New("a server with this name already exists")
 				}
@@ -57,7 +54,8 @@ func (c *ContentAddMcpServer) content() *MainContent {
 					dialog.ShowError(err, window)
 				}
 				c.actions.RefreshSideMenu()
-				c.actions.ResetListToServer(serverUuid)
+				// we select the newly added server in the list
+				c.actions.ResetListToContentId(serverUuid)
 			})
 			createButton.Disable() // Initially disabled
 

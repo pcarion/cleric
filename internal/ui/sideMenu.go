@@ -2,7 +2,6 @@ package ui
 
 import (
 	"errors"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -126,7 +125,16 @@ func (s *SideMenu) MakeNavigation() fyne.CanvasObject {
 		}),
 	)
 
-	return container.NewBorder(nil, themes, nil, nil, s.list)
+	actionCreate := widget.NewButtonWithIcon("Add new MCP server", theme.ContentAddIcon(), func() {
+		AddServerDialog(s.window, s.ValidateNewMcpServerName, s.AsServerListActions())
+	})
+
+	bottomOptions := container.NewVBox(
+		actionCreate,
+		themes,
+	)
+
+	return container.NewBorder(nil, bottomOptions, nil, nil, s.list)
 }
 
 func (s *SideMenu) SelectItem(id widget.ListItemID) {
@@ -134,6 +142,9 @@ func (s *SideMenu) SelectItem(id widget.ListItemID) {
 }
 
 func (s *SideMenu) ValidateNewMcpServerName(name string) error {
+	if !isValidServerName(name) {
+		return errors.New("name can only contain letters, numbers, and underscores")
+	}
 	for _, server := range s.mcpServers {
 		if server.Name == name {
 			return errors.New("a server with this name already exists")
@@ -200,12 +211,10 @@ func (s *SideMenu) ResetListScroll() {
 	}
 }
 
-func (s *SideMenu) ResetListToServer(uuid string) {
-	fmt.Println("@@@ resetting list to server", uuid)
+func (s *SideMenu) ResetListToContentId(contentId string) {
 	if s.list != nil && len(s.sideMenuData) > 0 {
 		for i, server := range s.sideMenuData {
-			if server.content().ContentId == uuid {
-				fmt.Println("@@@ selecting item", i)
+			if server.content().ContentId == contentId {
 				s.list.Select(i)
 				s.list.ScrollTo(i)
 				s.setMainContent(server.content())
