@@ -1,10 +1,17 @@
 package main
 
 import (
+	_ "embed"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"github.com/pcarion/cleric/internal/ui"
+)
+
+var (
+	//go:embed version.txt
+	version string
 )
 
 func main() {
@@ -30,7 +37,7 @@ func main() {
 		}
 	}
 
-	sideMenu := ui.NewSideMenu(myWindow, setMainContent, refreshMainContent, myApp)
+	sideMenu := ui.NewSideMenu(myWindow, setMainContent, refreshMainContent, myApp, version)
 
 	split := container.NewHSplit(
 		sideMenu.MakeNavigation(),

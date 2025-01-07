@@ -25,6 +25,9 @@ test-coverage:
 lint:
 	golangci-lint run
 
+bundle:
+	fyne bundle -o internal/ui/bundled.go -pkg ui cmd/cleric/Icon.png
+
 package:
 	fyne package -sourceDir cmd/cleric
 

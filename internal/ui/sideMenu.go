@@ -29,9 +29,16 @@ type SideMenu struct {
 	refreshMainContent func()
 	setMainContent     setMainContentFunc
 	myApp              fyne.App
+	version            string
 }
 
-func NewSideMenu(window fyne.Window, setMainContent setMainContentFunc, refreshMainContent func(), myApp fyne.App) *SideMenu {
+func NewSideMenu(
+	window fyne.Window,
+	setMainContent setMainContentFunc,
+	refreshMainContent func(),
+	myApp fyne.App,
+	version string,
+) *SideMenu {
 	config := configuration.LoadConfiguration()
 	mcpServers := config.LoadMcpServers()
 
@@ -42,6 +49,7 @@ func NewSideMenu(window fyne.Window, setMainContent setMainContentFunc, refreshM
 		setMainContent:     setMainContent,
 		window:             window,
 		myApp:              myApp,
+		version:            version,
 	}
 }
 
@@ -64,7 +72,7 @@ func (s *SideMenu) refreshSideMenuData() {
 	// use the mcp servers as the data
 	data := make([]menuItem, 0, 2+len(s.mcpServers))
 	// add the welcome item
-	data = append(data, NewContentWelcome().menuItem())
+	data = append(data, NewContentWelcome(s.version).menuItem())
 
 	// create the content for each mcp server
 	for _, server := range s.mcpServers {
