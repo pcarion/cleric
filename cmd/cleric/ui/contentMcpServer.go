@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -82,7 +83,7 @@ func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
-			// 2 different toolbar for edit mode and normal mode
+			// 2 different toolbars for edit mode and visualization mode
 			t := widget.NewToolbar()
 
 			if c.IsEditMode() {
@@ -93,7 +94,6 @@ func (c *ContentMcpServer) content() *MainContent {
 				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() {
 					c.DeleteMcpServer(c.mcpServer.Uuid)
 				}))
-				//				t.Append(widget.NewToolbarAction(theme.ContentCopyIcon(), func() { fmt.Println("Copy") }))
 				t.Append(NewEditToolbar(c.editAction()))
 			}
 
@@ -189,39 +189,61 @@ func (c *ContentMcpServer) content() *MainContent {
 				formBuilder.AddField(argumentsLabel, argumentsControls)
 			}
 
-			// prepare list of environment variables to be displayed
-			lstEnvVars := []string{}
-			for key, value := range c.mcpServer.Configuration.Env {
-				lstEnvVars = append(lstEnvVars, fmt.Sprintf("%s=%s", key, value))
-			}
-
-			// add row for environment variables
-			envVarsLabel := widget.NewLabel("Environment Variables")
-			envVarsLabel.TextStyle = fyne.TextStyle{Bold: true}
-			envVarsValue := widget.NewLabel(strings.Join(lstEnvVars, "\n"))
-			envVarsValue.TextStyle = fyne.TextStyle{Monospace: true}
-			envVarsWidgets := container.NewHBox()
+			// display environment variables
+			envVars := orderEnvVars(c.mcpServer.Configuration.Env)
 			if c.IsEditMode() {
-				envVarsWidgets.Add(c.newEditValueButton("Edit environment variables", "environment variables", strings.Join(lstEnvVars, "\n"), func(value string) {
-					//					c.mcpServer.Configuration.Env = strings.Split(value, "\n")
-					//					c.listActions.RefreshCurrentContent()
-					//					c.listActions.SaveMcpServers()
-				}))
+				for _, value := range envVars {
+					varName := value[0]
+					varValue := value[1]
+					argLabel := widget.NewLabel(fmt.Sprintf("variable: \"%s\"", varName))
+					argLabel.TextStyle = fyne.TextStyle{Bold: true}
+					argValue := widget.NewLabel(varValue)
+					argValue.TextStyle = fyne.TextStyle{Monospace: true}
+					argWidgets := container.NewHBox()
+					argWidgets.Add(c.newDeleteValueButton(func() {
+						delete(c.mcpServer.Configuration.Env, varName)
+						c.listActions.RefreshCurrentContent()
+						c.listActions.SaveMcpServers()
+					}))
+					argWidgets.Add(c.newEditValueButton(fmt.Sprintf("Edit environment variable: %s", varName), "value", varValue, func(newValue string) {
+						c.mcpServer.Configuration.Env[varName] = newValue
+						c.listActions.RefreshCurrentContent()
+						c.listActions.SaveMcpServers()
+					}))
+					argControls := container.New(layout.NewBorderLayout(nil, nil, nil, argWidgets), argWidgets, argValue)
+					formBuilder.AddField(argLabel, argControls)
+				}
+				addArgumentLabel := widget.NewLabel("")
+				addArgumentButton := c.newAddValueButton("Add Environment variable", "name", func(value string) {
+					c.mcpServer.Configuration.Env[value] = ""
+					c.listActions.RefreshCurrentContent()
+					c.listActions.SaveMcpServers()
+				})
+				addArgumentControls := container.NewHBox()
+				addArgumentControls.Add(addArgumentButton)
+				formBuilder.AddField(addArgumentLabel, addArgumentControls)
+			} else {
+				// prepare list of environment variables to be displayed
+				lstEnvVars := []string{}
+				for _, value := range envVars {
+					lstEnvVars = append(lstEnvVars, fmt.Sprintf("%s=%s", value[0], value[1]))
+				}
+
+				// add row for environment variables
+				envVarsLabel := widget.NewLabel("Environment Variables")
+				envVarsLabel.TextStyle = fyne.TextStyle{Bold: true}
+				envVarsValue := widget.NewLabel(strings.Join(lstEnvVars, "\n"))
+				envVarsValue.TextStyle = fyne.TextStyle{Monospace: true}
+				envVarsWidgets := container.NewHBox()
+				if c.IsEditMode() {
+					envVarsWidgets.Add(c.newEditValueButton("Edit environment variables", "environment variables", strings.Join(lstEnvVars, "\n"), func(value string) {
+					}))
+				}
+				envVarsControls := container.New(layout.NewBorderLayout(nil, nil, nil, envVarsWidgets), envVarsWidgets, envVarsValue)
+				formBuilder.AddField(envVarsLabel, envVarsControls)
 			}
-			envVarsControls := container.New(layout.NewBorderLayout(nil, nil, nil, envVarsWidgets), envVarsWidgets, envVarsValue)
-			formBuilder.AddField(envVarsLabel, envVarsControls)
-			// for key, value := range c.mcpServer.Configuration.Env {
-			// 	envVarsWidgets.Add(c.newEnvValue(key, value))
-			// }
 
-			// // if edit mode, add a button to add an environment variable
-			// if c.IsEditMode() {
-			// 	vbox.Add(widget.NewButton("Add Environment Variable", func() {
-			// 	}))
-			// }
-			// vbox.Add(widget.NewSeparator())
-
-			// v2
+			// display the form
 			pageContent := formBuilder.GetContainer()
 			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(pageContent))
 		},
@@ -310,4 +332,15 @@ func (c *ContentMcpServer) DeleteMcpServer(uuid string) {
 	cnf.SetDismissText("Cancel")
 	cnf.SetConfirmText("Delete")
 	cnf.Show()
+}
+
+func orderEnvVars(envVars map[string]string) [][2]string {
+	lstEnvVars := [][2]string{}
+	for key, value := range envVars {
+		lstEnvVars = append(lstEnvVars, [2]string{key, value})
+	}
+	sort.Slice(lstEnvVars, func(i, j int) bool {
+		return lstEnvVars[i][0] < lstEnvVars[j][0]
+	})
+	return lstEnvVars
 }
