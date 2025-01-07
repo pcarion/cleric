@@ -6,17 +6,18 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/lang"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
 type ContentWelcome struct {
+	myApp   fyne.App
 	version string
 }
 
-func NewContentWelcome(version string) *ContentWelcome {
-	return &ContentWelcome{version: version}
+func NewContentWelcome(myApp fyne.App, version string) *ContentWelcome {
+	return &ContentWelcome{myApp: myApp, version: version}
 }
 
 func (c *ContentWelcome) menuItem() menuItem {
@@ -57,34 +58,40 @@ MIT
 					seg.Alignment = fyne.TextAlignCenter
 				}
 			}
-			githubbutton := widget.NewButton(lang.L("Github page"), func() {
+			githubbutton := widget.NewButton("Github page", func() {
 				go func() {
 					u, _ := url.Parse("https://github.com/pcarion/cleric")
 					_ = fyne.CurrentApp().OpenURL(u)
 				}()
 			})
 
-			settings := widget.NewLabel("Settings")
+			settings := widget.NewLabel("Appearance")
 			settings.Alignment = fyne.TextAlignCenter
 			settings.TextStyle.Bold = true
 
 			themes := container.NewGridWithColumns(2,
 				widget.NewButton("Dark", func() {
-					// SetDarkTheme(s.myApp)
+					SetDarkTheme(c.myApp)
 				}),
 				widget.NewButton("Light", func() {
-					// SetLightTheme(s.myApp)
+					SetLightTheme(c.myApp)
 				}),
+			)
+
+			bottom := container.NewHBox(
+				layout.NewSpacer(),
+				container.NewCenter(settings),
+				container.NewCenter(themes),
 			)
 
 			cont := container.NewVBox(
 				container.NewCenter(img),
 				container.NewCenter(richhead),
 				container.NewCenter(container.NewHBox(githubbutton)),
-				container.NewCenter(settings),
-				container.NewCenter(themes),
 			)
-			return container.NewPadded(cont)
+			mainContentContainer := container.NewBorder(cont, bottom, nil, nil)
+
+			return mainContentContainer
 		},
 	}
 }

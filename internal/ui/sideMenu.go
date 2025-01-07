@@ -72,7 +72,7 @@ func (s *SideMenu) refreshSideMenuData() {
 	// use the mcp servers as the data
 	data := make([]menuItem, 0, 2+len(s.mcpServers))
 	// add the welcome item
-	data = append(data, NewContentWelcome(s.version).menuItem())
+	data = append(data, NewContentWelcome(s.myApp, s.version).menuItem())
 
 	// create the content for each mcp server
 	for _, server := range s.mcpServers {
@@ -121,22 +121,12 @@ func (s *SideMenu) MakeNavigation() fyne.CanvasObject {
 		s.setMainContent(sideMenuItem.content())
 	}
 
-	themes := container.NewGridWithColumns(2,
-		widget.NewButton("Dark", func() {
-			SetDarkTheme(s.myApp)
-		}),
-		widget.NewButton("Light", func() {
-			SetLightTheme(s.myApp)
-		}),
-	)
-
 	actionCreate := widget.NewButtonWithIcon("Add new MCP server", theme.ContentAddIcon(), func() {
 		AddServerDialog(s.window, s.ValidateNewMcpServerName, s.AsServerListActions())
 	})
 
 	bottomOptions := container.NewVBox(
 		actionCreate,
-		themes,
 	)
 
 	return container.NewBorder(nil, bottomOptions, nil, nil, s.list)
