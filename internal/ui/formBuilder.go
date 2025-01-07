@@ -7,6 +7,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// utility class to build a form
+
 type FormBuilder struct {
 	elements []fyne.CanvasObject
 }

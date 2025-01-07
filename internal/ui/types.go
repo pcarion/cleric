@@ -4,8 +4,8 @@ import (
 	"fyne.io/fyne/v2"
 )
 
+// describe the right side content of the window
 type MainContent struct {
-	Title     string
 	View      func(w fyne.Window) fyne.CanvasObject
 	ContentId string
 }

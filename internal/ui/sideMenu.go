@@ -2,6 +2,7 @@ package ui
 
 import (
 	"errors"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -27,9 +28,11 @@ type SideMenu struct {
 	mcpServers         []*configuration.McpServerDescription
 	list               *widget.List
 	refreshMainContent func()
+	setMainContent     setMainContentFunc
+	myApp              fyne.App
 }
 
-func NewSideMenu(window fyne.Window, refreshMainContent func()) *SideMenu {
+func NewSideMenu(window fyne.Window, setMainContent setMainContentFunc, refreshMainContent func(), myApp fyne.App) *SideMenu {
 	config := configuration.LoadConfiguration()
 	mcpServers := config.LoadMcpServers()
 
@@ -37,7 +40,9 @@ func NewSideMenu(window fyne.Window, refreshMainContent func()) *SideMenu {
 		config:             config,
 		mcpServers:         mcpServers,
 		refreshMainContent: refreshMainContent,
+		setMainContent:     setMainContent,
 		window:             window,
+		myApp:              myApp,
 	}
 }
 
@@ -58,7 +63,7 @@ func (s *SideMenu) RefreshSideMenu() {
 
 func (s *SideMenu) refreshSideMenuData() {
 	// use the mcp servers as the data
-	data := make([]menuItem, 0, 1+len(s.mcpServers))
+	data := make([]menuItem, 0, 2+len(s.mcpServers))
 	// add the welcome item
 	data = append(data, NewContentWelcome().menuItem())
 
@@ -83,12 +88,7 @@ func (s *SideMenu) RefreshCurrentContent() {
 	}
 }
 
-func (s *SideMenu) MakeNavigation(
-	setMainContent setMainContentFunc,
-	refreshMainContent func(),
-	myApp fyne.App,
-) fyne.CanvasObject {
-
+func (s *SideMenu) MakeNavigation() fyne.CanvasObject {
 	// refresh the side menu data
 	s.refreshSideMenuData()
 	s.list = widget.NewList(
@@ -114,15 +114,15 @@ func (s *SideMenu) MakeNavigation(
 	// add code if the item is clicked
 	s.list.OnSelected = func(id widget.ListItemID) {
 		sideMenuItem := s.sideMenuData[id]
-		setMainContent(sideMenuItem.content())
+		s.setMainContent(sideMenuItem.content())
 	}
 
 	themes := container.NewGridWithColumns(2,
 		widget.NewButton("Dark", func() {
-			SetDarkTheme(myApp)
+			SetDarkTheme(s.myApp)
 		}),
 		widget.NewButton("Light", func() {
-			SetLightTheme(myApp)
+			SetLightTheme(s.myApp)
 		}),
 	)
 
@@ -201,10 +201,14 @@ func (s *SideMenu) ResetListScroll() {
 }
 
 func (s *SideMenu) ResetListToServer(uuid string) {
+	fmt.Println("@@@ resetting list to server", uuid)
 	if s.list != nil && len(s.sideMenuData) > 0 {
 		for i, server := range s.sideMenuData {
 			if server.content().ContentId == uuid {
+				fmt.Println("@@@ selecting item", i)
 				s.list.Select(i)
+				s.list.ScrollTo(i)
+				s.setMainContent(server.content())
 				break
 			}
 		}
