@@ -191,3 +191,10 @@ func (s *SideMenu) AddMcpServer(name string) error {
 	s.SaveMcpServers()
 	return nil
 }
+
+func (s *SideMenu) ResetListScroll() {
+	if s.list != nil && len(s.sideMenuData) > 0 {
+		s.list.Select(0)
+		s.list.ScrollToTop()
+	}
+}

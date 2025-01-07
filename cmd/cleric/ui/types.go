@@ -10,6 +10,7 @@ type MainContent struct {
 }
 
 type ServerListActions interface {
+	ResetListScroll()
 	RefreshCurrentContent()
 	RefreshSideMenu()
 	SaveMcpServers()

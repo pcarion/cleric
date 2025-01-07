@@ -327,6 +327,7 @@ func (c *ContentMcpServer) DeleteMcpServer(uuid string) {
 			// we remove the server from the list
 			c.listActions.DeleteMcpServer(uuid)
 			c.listActions.RefreshSideMenu()
+			c.listActions.ResetListScroll()
 		}
 	}, c.window)
 	cnf.SetDismissText("Cancel")
