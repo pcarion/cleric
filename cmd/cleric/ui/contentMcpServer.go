@@ -108,8 +108,9 @@ func (c *ContentMcpServer) content() *MainContent {
 			nameValue := widget.NewLabel(c.mcpServer.Name)
 			nameWidgets := container.NewHBox()
 			if c.IsEditMode() {
-				nameWidgets.Add(c.newEditValueButtonWithValidator("Edit name", "name", c.mcpServer.Name, c.listActions.ValidateExistingName(c.mcpServer.Uuid), func(value string) {
+				nameWidgets.Add(c.newEditValueButtonWithValidator("Edit name", "name", c.mcpServer.Name, c.listActions.ValidateExistingMcpServerName(c.mcpServer.Uuid), func(value string) {
 					c.mcpServer.Name = value
+					c.listActions.RefreshSideMenu()
 					c.listActions.RefreshCurrentContent()
 					c.listActions.SaveMcpServers()
 				}))
@@ -163,8 +164,8 @@ func (c *ContentMcpServer) content() *MainContent {
 					}))
 					argWidgets.Add(c.newEditValueButton("Edit argument", "argument", value, func(newValue string) {
 						c.mcpServer.Configuration.Args[index] = newValue
-						c.listActions.RefreshCurrentContent()
 						c.listActions.SaveMcpServers()
+						c.listActions.RefreshCurrentContent()
 					}))
 					argControls := container.New(layout.NewBorderLayout(nil, nil, nil, argWidgets), argWidgets, argValue)
 					formBuilder.AddField(argLabel, argControls)
@@ -172,8 +173,8 @@ func (c *ContentMcpServer) content() *MainContent {
 				addArgumentLabel := widget.NewLabel("")
 				addArgumentButton := c.newAddValueButton("Add Argument", "argument", func(value string) {
 					c.mcpServer.Configuration.Args = append(c.mcpServer.Configuration.Args, value)
-					c.listActions.RefreshCurrentContent()
 					c.listActions.SaveMcpServers()
+					c.listActions.RefreshCurrentContent()
 				})
 				addArgumentControls := container.NewHBox()
 				addArgumentControls.Add(addArgumentButton)
@@ -326,7 +327,6 @@ func (c *ContentMcpServer) DeleteMcpServer(uuid string) {
 			// we remove the server from the list
 			c.listActions.DeleteMcpServer(uuid)
 			c.listActions.RefreshSideMenu()
-			c.listActions.SaveMcpServers()
 		}
 	}, c.window)
 	cnf.SetDismissText("Cancel")

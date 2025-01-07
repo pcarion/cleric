@@ -30,10 +30,10 @@ func main() {
 		}
 	}
 
-	sideMenu := ui.NewSideMenu(refreshMainContent)
+	sideMenu := ui.NewSideMenu(myWindow, refreshMainContent)
 
 	split := container.NewHSplit(
-		sideMenu.MakeNavigation(setMainContent, refreshMainContent, myApp, myWindow),
+		sideMenu.MakeNavigation(setMainContent, refreshMainContent, myApp),
 		mainContentContainer,
 	)
 	split.Offset = 0.2

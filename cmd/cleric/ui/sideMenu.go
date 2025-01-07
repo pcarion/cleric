@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/google/uuid"
 	"github.com/pcarion/cleric/pkg/configuration"
 )
 
@@ -20,13 +21,15 @@ type menuItem interface {
 
 // definition of the side menu
 type SideMenu struct {
+	window             fyne.Window
 	config             *configuration.Configuration
+	sideMenuData       []menuItem
 	mcpServers         []*configuration.McpServerDescription
 	list               *widget.List
 	refreshMainContent func()
 }
 
-func NewSideMenu(refreshMainContent func()) *SideMenu {
+func NewSideMenu(window fyne.Window, refreshMainContent func()) *SideMenu {
 	config := configuration.LoadConfiguration()
 	mcpServers := config.LoadMcpServers()
 
@@ -34,6 +37,7 @@ func NewSideMenu(refreshMainContent func()) *SideMenu {
 		config:             config,
 		mcpServers:         mcpServers,
 		refreshMainContent: refreshMainContent,
+		window:             window,
 	}
 }
 
@@ -47,8 +51,30 @@ func (s *SideMenu) AsServerListActions() ServerListActions {
 
 func (s *SideMenu) RefreshSideMenu() {
 	if s.list != nil {
+		s.refreshSideMenuData()
 		s.list.Refresh()
 	}
+}
+
+func (s *SideMenu) refreshSideMenuData() {
+	// use the mcp servers as the data
+	data := make([]menuItem, 0, 1+len(s.mcpServers))
+	// add the welcome item
+	data = append(data, NewContentWelcome().menuItem())
+
+	// create the content for each mcp server
+	for _, server := range s.mcpServers {
+		data = append(data, NewContentMcpServer(
+			s.window,
+			server,
+			s.AsServerListActions(),
+		).menuItem())
+	}
+
+	// add the action to add a new mcp server
+	data = append(data, NewContentAddMcpServer(s.AsServerListActions()).menuItem())
+
+	s.sideMenuData = data
 }
 
 func (s *SideMenu) RefreshCurrentContent() {
@@ -61,29 +87,13 @@ func (s *SideMenu) MakeNavigation(
 	setMainContent setMainContentFunc,
 	refreshMainContent func(),
 	myApp fyne.App,
-	window fyne.Window,
 ) fyne.CanvasObject {
 
-	// use the mcp servers as the data
-	data := make([]menuItem, 0, 1+len(s.mcpServers))
-	// add the welcome item
-	data = append(data, NewContentWelcome().menuItem())
-
-	// create the content for each mcp server
-	for _, server := range s.mcpServers {
-		data = append(data, NewContentMcpServer(
-			window,
-			server,
-			s.AsServerListActions(),
-		).menuItem())
-	}
-
-	// add the action to add a new mcp server
-	data = append(data, NewContentAddMcpServer().menuItem())
-
+	// refresh the side menu data
+	s.refreshSideMenuData()
 	s.list = widget.NewList(
 		func() int {
-			return len(data)
+			return len(s.sideMenuData)
 		},
 		func() fyne.CanvasObject {
 			return container.NewHBox(
@@ -93,7 +103,7 @@ func (s *SideMenu) MakeNavigation(
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
 			// get the side menu item
-			sideMenuItem := data[id]
+			sideMenuItem := s.sideMenuData[id]
 			hbox := item.(*fyne.Container) // that's the Hbox
 
 			hbox.Objects[0].(*widget.Icon).SetResource(sideMenuItem.icon())
@@ -103,7 +113,7 @@ func (s *SideMenu) MakeNavigation(
 
 	// add code if the item is clicked
 	s.list.OnSelected = func(id widget.ListItemID) {
-		sideMenuItem := data[id]
+		sideMenuItem := s.sideMenuData[id]
 		setMainContent(sideMenuItem.content())
 	}
 
@@ -123,7 +133,7 @@ func (s *SideMenu) SelectItem(id widget.ListItemID) {
 	s.list.Select(id)
 }
 
-func (s *SideMenu) ValidateNewName(name string) error {
+func (s *SideMenu) ValidateNewMcpServerName(name string) error {
 	for _, server := range s.mcpServers {
 		if server.Name == name {
 			return errors.New("a server with this name already exists")
@@ -132,26 +142,10 @@ func (s *SideMenu) ValidateNewName(name string) error {
 	return nil
 }
 
-func (s *SideMenu) ValidateExistingName(uuid string) func(name string) error {
+func (s *SideMenu) ValidateExistingMcpServerName(uuid string) func(name string) error {
 	return func(name string) error {
-		// Check for empty string
-		if len(name) == 0 {
+		if !isValidServerName(name) {
 			return errors.New("name cannot be empty")
-		}
-
-		// Check if name starts with a number
-		if name[0] >= '0' && name[0] <= '9' {
-			return errors.New("name cannot start with a number")
-		}
-
-		// Check if name contains only alphanumeric characters and underscore
-		for _, char := range name {
-			if !((char >= 'a' && char <= 'z') ||
-				(char >= 'A' && char <= 'Z') ||
-				(char >= '0' && char <= '9') ||
-				char == '_') {
-				return errors.New("name can only contain letters, numbers, and underscores")
-			}
 		}
 
 		// Check for duplicate names
@@ -175,4 +169,25 @@ func (s *SideMenu) DeleteMcpServer(uuid string) {
 			break
 		}
 	}
+	s.SaveMcpServers()
+}
+
+func (s *SideMenu) AddMcpServer(name string) error {
+	if !isValidServerName(name) {
+		return errors.New("name must be an alphanumeric string")
+	}
+
+	s.mcpServers = append(s.mcpServers, &configuration.McpServerDescription{
+		Name:            name,
+		Uuid:            uuid.New().String(),
+		Description:     "",
+		InConfiguration: false,
+		Configuration: configuration.McpServerConfiguration{
+			Command: "",
+			Args:    []string{},
+			Env:     map[string]string{},
+		},
+	})
+	s.SaveMcpServers()
+	return nil
 }
