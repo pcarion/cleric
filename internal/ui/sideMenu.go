@@ -75,9 +75,6 @@ func (s *SideMenu) refreshSideMenuData() {
 		).menuItem())
 	}
 
-	// add the action to add a new mcp server
-	data = append(data, NewContentAddMcpServer(s.AsServerListActions()).menuItem())
-
 	s.sideMenuData = data
 }
 
