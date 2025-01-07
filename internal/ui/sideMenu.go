@@ -172,14 +172,15 @@ func (s *SideMenu) DeleteMcpServer(uuid string) {
 	s.SaveMcpServers()
 }
 
-func (s *SideMenu) AddMcpServer(name string) error {
+func (s *SideMenu) AddMcpServer(name string) (string, error) {
 	if !isValidServerName(name) {
-		return errors.New("name must be an alphanumeric string")
+		return "", errors.New("name must be an alphanumeric string")
 	}
+	uuid := uuid.New().String()
 
 	s.mcpServers = append(s.mcpServers, &configuration.McpServerDescription{
 		Name:            name,
-		Uuid:            uuid.New().String(),
+		Uuid:            uuid,
 		Description:     "",
 		InConfiguration: false,
 		Configuration: configuration.McpServerConfiguration{
@@ -189,12 +190,23 @@ func (s *SideMenu) AddMcpServer(name string) error {
 		},
 	})
 	s.SaveMcpServers()
-	return nil
+	return uuid, nil
 }
 
 func (s *SideMenu) ResetListScroll() {
 	if s.list != nil && len(s.sideMenuData) > 0 {
 		s.list.Select(0)
 		s.list.ScrollToTop()
+	}
+}
+
+func (s *SideMenu) ResetListToServer(uuid string) {
+	if s.list != nil && len(s.sideMenuData) > 0 {
+		for i, server := range s.sideMenuData {
+			if server.content().ContentId == uuid {
+				s.list.Select(i)
+				break
+			}
+		}
 	}
 }

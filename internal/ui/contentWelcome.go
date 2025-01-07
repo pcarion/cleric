@@ -19,6 +19,7 @@ func (c *ContentWelcome) menuItem() menuItem {
 
 func (c *ContentWelcome) content() *MainContent {
 	return &MainContent{
+		ContentId: "welcome",
 		View: func(window fyne.Window) fyne.CanvasObject {
 			return widget.NewLabel("Welcome")
 		},

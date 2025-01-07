@@ -4,7 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"github.com/pcarion/cleric/cmd/cleric/ui"
+	"github.com/pcarion/cleric/internal/ui"
 )
 
 func main() {

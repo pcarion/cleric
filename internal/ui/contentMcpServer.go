@@ -81,6 +81,7 @@ func (c *ContentMcpServer) EditMode() {
 
 func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
+		ContentId: c.mcpServer.Uuid,
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// create a toolbar with buttons
 			// 2 different toolbars for edit mode and visualization mode

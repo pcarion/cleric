@@ -25,6 +25,7 @@ func (c *ContentAddMcpServer) menuItem() menuItem {
 
 func (c *ContentAddMcpServer) content() *MainContent {
 	return &MainContent{
+		ContentId: "add_mcp_server",
 		View: func(window fyne.Window) fyne.CanvasObject {
 			// Create input field
 			createLabel := widget.NewLabel("Add a new MCP Server")
@@ -51,12 +52,12 @@ func (c *ContentAddMcpServer) content() *MainContent {
 
 			// Create button (moved before OnChanged to reference it)
 			createButton := widget.NewButton("Add server", func() {
-				err := c.actions.AddMcpServer(nameEntry.Text)
+				serverUuid, err := c.actions.AddMcpServer(nameEntry.Text)
 				if err != nil {
 					dialog.ShowError(err, window)
 				}
 				c.actions.RefreshSideMenu()
-				c.actions.RefreshCurrentContent()
+				c.actions.ResetListToServer(serverUuid)
 			})
 			createButton.Disable() // Initially disabled
 

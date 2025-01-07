@@ -5,12 +5,14 @@ import (
 )
 
 type MainContent struct {
-	Title string
-	View  func(w fyne.Window) fyne.CanvasObject
+	Title     string
+	View      func(w fyne.Window) fyne.CanvasObject
+	ContentId string
 }
 
 type ServerListActions interface {
 	ResetListScroll()
+	ResetListToServer(uuid string)
 	RefreshCurrentContent()
 	RefreshSideMenu()
 	SaveMcpServers()
@@ -21,5 +23,5 @@ type ServerListActions interface {
 	// delete an existing mcp server
 	DeleteMcpServer(uuid string)
 	// add a new mcp server
-	AddMcpServer(name string) error
+	AddMcpServer(name string) (string, error)
 }
