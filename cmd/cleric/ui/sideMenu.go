@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/google/uuid"
-	"github.com/pcarion/cleric/pkg/configuration"
+	"github.com/pcarion/cleric/internal/configuration"
 )
 
 type setMainContentFunc func(mainContent *MainContent)

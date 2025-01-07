@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/pcarion/cleric/pkg/configuration"
+	"github.com/pcarion/cleric/internal/configuration"
 )
 
 type ContentMcpServer struct {
