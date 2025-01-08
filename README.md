@@ -5,18 +5,33 @@
 <br/>
 
 # Cleric
-Cleric is a desktop application that provides a graphical user interface to configure the list of Model Context Proptocol (MCP) servers supported by [Claude desktop](https://claude.ai/download).
 
-With Cleric, you can maintain 2 lists of MCP servers:
-* `$HOME/.cleric.json` the list of MCP servers that you may want to use with Claude desktop
-* `<OS specific path>/claude_desktop_config.json` the actual list of MCP servers configured in Claude desktop
+Cleric is a desktop application that helps you manage Model Context Protocol (MCP) servers for [Claude desktop](https://claude.ai/download). It provides an easy-to-use interface for adding, removing, and configuring your MCP servers.
 
-Cleric makes it easy to add or remove a MCP server from Claude without losing its configuration. If you manually add a server in Claude desktop, Cleric will automatically update the list of MCP servers in `$HOME/.cleric.json` when it is launched.
+## How It Works
 
-As a safety measure, make sure to backup your `claude_desktop_config.json` file before using Cleric if you have manually configured the list of MCP servers in Claude desktop.
+Cleric manages two configuration files:
 
-There is no "save" button in Cleric: the list of MCP servers is automatically saved each time you change a server in the list.
+1. A personal server list at `$HOME/.cleric.json`
+   - Stores all your available MCP servers
+   - Acts as a backup of your server configurations
 
+2. The Claude Desktop configuration at `<OS specific path>/claude_desktop_config.json`
+   - Contains the active MCP servers currently used by Claude Desktop
+
+## Key Features
+
+- Seamlessly switch MCP servers in and out of Claude Desktop
+- Automatically preserves server configurations when making changes
+- Syncs with Claude Desktop: Any servers you manually add to Claude Desktop will be automatically added to your Cleric server list on next launch
+- Real-time saving: Changes are saved automatically as you make them
+
+## Important Note
+
+Before using Cleric for the first time, please back up your `claude_desktop_config.json` file if you have manually configured MCP servers in Claude Desktop.
+
+
+# Development
 
 ## Prerequisites
 To build and run this project, you need:
@@ -54,8 +69,6 @@ make build
 
 The built binary will be available in the `build` directory.
 
-## Development
-
 ### Running the Application
 
 To run the application directly:
@@ -63,14 +76,8 @@ To run the application directly:
 make run
 ```
 
-### Available Make Commands
 
-- `make build`: Builds the application
-- `make run`: Runs the application directly
-- `make bundle`: Bundles assets into the application
-- `make package`: Creates a distributable package
-
-### Project Structure
+## Project Structure
 
 ```
 .
@@ -79,8 +86,7 @@ make run
 ├── internal/
 │   └── ui/             # UI components and logic
 │   └── config/         # Code to manage the list of MCP servers
-├── build/              # Build artifacts
-└── cleric.app/         # Application bundle
+└── build/              # Build artifacts
 ```
 
 ## Contributing
