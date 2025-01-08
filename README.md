@@ -7,6 +7,16 @@
 # Cleric
 Cleric is a desktop application that provides a graphical user interface to configure the list of Model Context Proptocol (MCP) servers supported by [Claude desktop](https://claude.ai/download).
 
+With Cleric, you can maintain 2 lists of MCP servers:
+* `$HOME/.cleric.json` the list of MCP servers that you may want to use with Claude desktop
+* `<OS specific path>/claude_desktop_config.json` the actual list of MCP servers configured in Claude desktop
+
+Cleric makes it easy to add or remove a MCP server from Claude without losing its configuration. If you manually add a server in Claude desktop, Cleric will automatically update the list of MCP servers in `$HOME/.cleric.json` when it is launched.
+
+As a safety measure, make sure to backup your `claude_desktop_config.json` file before using Cleric if you have manually configured the list of MCP servers in Claude desktop.
+
+There is no "save" button in Cleric: the list of MCP servers is automatically saved each time you change a server in the list.
+
 
 ## Prerequisites
 To build and run this project, you need:
@@ -25,8 +35,7 @@ To build and run this project, you need:
 To build and run this project, you need:
 
 - Go 1.23.4 or later
-- Fyne toolkit and its dependencies
-- golangci-lint (for development)
+- Fyne toolkit and its dependencies - read the [Getting Started with Fyne](https://docs.fyne.io/started/) documentation for more information
 
 ## Installation
 
