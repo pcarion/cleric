@@ -34,18 +34,6 @@ Before using Cleric for the first time, please back up your `claude_desktop_conf
 # Development
 
 ## Prerequisites
-To build and run this project, you need:
-
-* Go 1.23 or later
-* [Fyne toolkit](https://docs.fyne.io/) and its dependencies
-
-## Features
-
-- Server management capabilities
-- Cross-platform compatibility (thanks to Fyne and Go)
-- Dark theme support
-
-## Prerequisites
 
 To build and run this project, you need:
 
@@ -75,7 +63,6 @@ To run the application directly:
 ```bash
 make run
 ```
-
 
 ## Project Structure
 
