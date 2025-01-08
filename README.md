@@ -1,6 +1,6 @@
 <br/>
 <p align="center">
-<img src="assets/cleric-logo-color.svg" width="225" alt="Cleric logo">
+<img src="assets/cleric-logo.svg" width="225" alt="Cleric logo">
 </p>
 <br/>
 
