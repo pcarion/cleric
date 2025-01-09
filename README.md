@@ -45,11 +45,18 @@ The `🖊️` button will allow you to edit the server information:
 
 ![MCP server information](assets/cleric-screenshot-02.png)
 
-
 ## Important Note
 
 Before using Cleric for the first time, please back up your `claude_desktop_config.json` file if you have manually configured MCP servers in Claude Desktop.
 
+Don't forget to restart Claude Desktop after you have made changes to the server list.
+
+## Coming Soon
+
+- [ ] Add a button to test a server directly from Cleric and retrieve the list of tools/prompt/resources exposed by the server.
+- [ ] Add a button to start the MCP inspector for a selected server.
+- [ ] Add a button to open the Claude Desktop configuration file in the user's default text editor.
+- [ ] Add a button to open the Cleric configuration file in the user's default text editor.
 
 # Development
 
