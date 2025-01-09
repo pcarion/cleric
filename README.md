@@ -26,6 +26,26 @@ Cleric manages two configuration files:
 - Syncs with Claude Desktop: Any servers you manually add to Claude Desktop will be automatically added to your Cleric server list on next launch
 - Real-time saving: Changes are saved automatically as you make them
 
+
+## How to use
+
+On the left side of the application, you can see the list of MCP servers that you have configured.
+
+The servers with a checkmark are the ones that are currently configured in Claude desktop.
+
+The right side of the application shows the information about the selected server:
+
+![MCP server information](assets/cleric-screenshot-01.png)
+
+The `Remove From Claude` button will remove the server from Claude desktop but the server will remain in your personal server list.
+
+The `✄` button will remove the server from both your personal server list and the list of servers that are currently configured in Claude desktop.
+
+The `🖊️` button will allow you to edit the server information:
+
+![MCP server information](assets/cleric-screenshot-02.png)
+
+
 ## Important Note
 
 Before using Cleric for the first time, please back up your `claude_desktop_config.json` file if you have manually configured MCP servers in Claude Desktop.
