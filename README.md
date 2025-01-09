@@ -51,6 +51,18 @@ Before using Cleric for the first time, please back up your `claude_desktop_conf
 
 Don't forget to restart Claude Desktop after you have made changes to the server list.
 
+
+### MacOS issue when launching the app
+
+If you get the "cannot be opened because the developer cannot be verified" error, you can apply the following workaround.
+
+* Control-click the app icon, then choose Open from the shortcut menu.
+* Click Open.
+
+If you get the "cleric is damaged and can't be opened. You should move it to the Bin." error you can apply the following workaround.
+
+Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric.app`.
+
 ## Coming Soon
 
 - [ ] Add a button to test a server directly from Cleric and retrieve the list of tools/prompt/resources exposed by the server.

@@ -1,0 +1,35 @@
+name: Build for MacOS Intel
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set env
+      run: echo "CLERIC_VERSION=v$(cat cmd/cleric/version.txt)" >> $GITHUB_ENV
+
+    - uses: WillAbides/setup-go-faster@v1.14.0
+      id: setup-go-faster
+      with:
+        go-version: "*"
+
+    - name: Install fyne
+      run: go install fyne.io/fyne/v2/cmd/fyne@latest
+
+    - name: Package (macOS)
+      run:  cd cmd/cleric && fyne package --release -os darwin -icon  ../../assets/Icon.png  && mv cleric.app ../../
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cleric_${{ env.CLERIC_VERSION }}_macOS_amd64
+        path: |
+          LICENSE
+          README.md
+          cleric.app/
+        retention-days: 2
