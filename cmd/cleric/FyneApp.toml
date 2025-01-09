@@ -1,8 +1,8 @@
 Website = "https://pcarion.com"
 
 [Details]
-  Icon = "Icon.png"
+  Icon = "../../assets/Icon.png"
   Name = "Cleric"
   ID = "com.pcarion.cleric"
-  Version = "0.0.1"
-  Build = 3
+  Version = "0.1.0"
+  Build = 4

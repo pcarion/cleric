@@ -15,18 +15,8 @@ clean:
 	go clean
 	rm -rf $(BUILD_DIR)
 
-test:
-	go test ./...
-
-test-coverage:
-	go test ./... -coverprofile=coverage.out
-	go tool cover -html=coverage.out
-
-lint:
-	golangci-lint run
-
 bundle:
-	fyne bundle -o internal/ui/bundled.go -pkg ui cmd/cleric/Icon.png
+	fyne bundle -o internal/ui/bundled.go -pkg ui assets/Icon.png
 
 package:
 	fyne package -sourceDir cmd/cleric
