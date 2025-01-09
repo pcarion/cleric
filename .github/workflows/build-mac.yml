@@ -23,7 +23,7 @@ jobs:
       run: go install fyne.io/fyne/v2/cmd/fyne@latest
 
     - name: Package (macOS)
-      run:  cd cmd/cleric && GOARCH=arm64 fyne package --release -os darwin -icon  ../../assets/Icon.png  && mv cletic.app ../../
+      run:  cd cmd/cleric && GOARCH=arm64 fyne package --release -os darwin -icon  ../../assets/Icon.png  && mv cleric.app ../../
 
     - uses: actions/upload-artifact@v4
       with:
