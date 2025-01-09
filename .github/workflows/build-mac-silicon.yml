@@ -31,5 +31,5 @@ jobs:
         path: |
           LICENSE
           README.md
-          cleric.app/
+          cleric.app
         retention-days: 2

@@ -1,4 +1,4 @@
-name: Build for MacOS Intel
+name: Build for Windows
 on: 
   workflow_dispatch:
 
