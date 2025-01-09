@@ -4,7 +4,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
 
@@ -19,11 +19,15 @@ jobs:
       with:
         go-version: "*"
 
+    - name: Get dependencies
+      run: sudo apt update && sudo apt install gcc xorg-dev gcc-mingw-w64
+
+
     - name: Install fyne
       run: go install fyne.io/fyne/v2/cmd/fyne@latest
 
-    - name: Package (macOS)
-      run:  cd cmd/cleric && fyne package --release -os darwin -icon  ../../assets/Icon.png  && mv cleric.app ../../
+    - name: Package (Windows)
+      run:  cd cmd/cleric &&  CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ fyne package --release -os windows -icon  ../../assets/Icon.png  && mv cleric.exe ../../
 
     - uses: actions/upload-artifact@v4
       with:
@@ -31,5 +35,5 @@ jobs:
         path: |
           LICENSE
           README.md
-          cleric.app
+          cleric.exe
         retention-days: 2
