@@ -6,7 +6,7 @@
 <div align="center">
 <p>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/github.com/pcarion/cleric)](https://goreportcard.com/report/github.com/pcarion/cleric)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pcarion/cleric)](https://goreportcard.com/report/github.com/pcarion/cleric)
 [![Release Version](https://img.shields.io/github/v/release/pcarion/cleric?label=Release)](https://github.com/pcarion/cleric/releases/latest)
 </p>
 </div>
