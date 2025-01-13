@@ -15,20 +15,29 @@ type ClaudeAction interface {
 // is a toolbar item that allows to send a message to claude
 type ToolbarClaudeAction struct {
 	claudeAction ClaudeAction
+	statusLabel  *widget.Label
 }
 
-func NewToolbarClaudeAction(claudeAction ClaudeAction) *ToolbarClaudeAction {
-	return &ToolbarClaudeAction{claudeAction: claudeAction}
+func NewToolbarClaudeAction(claudeAction ClaudeAction, statusLabel *widget.Label) *ToolbarClaudeAction {
+	return &ToolbarClaudeAction{claudeAction: claudeAction, statusLabel: statusLabel}
 }
 
 func (t *ToolbarClaudeAction) ToolbarObject() fyne.CanvasObject {
 	if t.claudeAction.IsServerInClaude() {
-		return widget.NewButtonWithIcon("Remove from claude", theme.CheckButtonCheckedIcon(), func() {
+		return NewHoverButton(theme.CheckButtonCheckedIcon(), "Remove from claude", func() {
 			t.claudeAction.RemoveFromClaude()
+		}, func() {
+			t.statusLabel.SetText("Remove from the list of claude servers")
+		}, func() {
+			t.statusLabel.SetText("")
 		})
 	} else {
-		return widget.NewButtonWithIcon("Add to claude", theme.CheckButtonIcon(), func() {
+		return NewHoverButton(theme.CheckButtonIcon(), "Add to claude", func() {
 			t.claudeAction.AddToClaude()
+		}, func() {
+			t.statusLabel.SetText("Add to the list of claude servers")
+		}, func() {
+			t.statusLabel.SetText("")
 		})
 	}
 }

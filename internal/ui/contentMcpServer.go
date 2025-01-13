@@ -92,7 +92,7 @@ func (c *ContentMcpServer) content() *MainContent {
 			if c.IsEditMode() {
 				t.Append(NewEditToolbar(c.editAction(), statusLabel))
 			} else {
-				t.Append(NewToolbarClaudeAction(c.claudeAction()))
+				t.Append(NewToolbarClaudeAction(c.claudeAction(), statusLabel))
 				t.Append(widget.NewToolbarSpacer())
 				t.Append(NewToolbarItemWithHover(theme.ContentCutIcon(), func() {
 					c.DeleteMcpServer(c.mcpServer.Uuid)
