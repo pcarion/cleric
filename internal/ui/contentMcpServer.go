@@ -95,18 +95,7 @@ func (c *ContentMcpServer) content() *MainContent {
 				t.Append(NewToolbarClaudeAction(c.claudeAction(), statusLabel))
 				t.Append(widget.NewToolbarSpacer())
 				t.Append(NewToolbarItemWithHover(theme.VisibilityIcon(), func() {
-					inspectorArgs := []string{}
-					inspectorArgs = append(inspectorArgs, "@modelcontextprotocol/inspector")
-					inspectorArgs = c.mcpServer.Configuration.GetMcpInspectorArgs(inspectorArgs)
-					fmt.Println(strings.Join(inspectorArgs, " "))
-					go func() {
-						cmd, err := runCommand("npx", inspectorArgs)
-						if err != nil {
-							fmt.Printf("Error running inspector: %v\n", err)
-							return
-						}
-						cmd.Wait()
-					}()
+					ShowInspectorDialog(window, c.mcpServer)
 				}, mkHoverable("Start the MCP inspector", statusLabel)))
 				t.Append(NewToolbarItemWithHover(theme.ContentCutIcon(), func() {
 					c.DeleteMcpServer(c.mcpServer.Uuid)
