@@ -3,10 +3,20 @@
 <img src="assets/cleric-logo.svg" width="100" alt="Cleric logo">
 </p>
 <br/>
+<div align="center">
+<p>
+
+[![Go Report Card](https://goreportcard.com/report/github.com/pcarion/cleric)](https://goreportcard.com/report/github.com/pcarion/cleric)
+[![Release Version](https://img.shields.io/github/v/release/pcarion/cleric?label=Release)](https://github.com/pcarion/cleric/releases/latest)
+</p>
+</div>
+
 
 # Cleric
 
 Cleric is a desktop application that helps you manage Model Context Protocol (MCP) servers for [Claude desktop](https://claude.ai/download). It provides an easy-to-use interface for adding, removing, and configuring your MCP servers.
+
+Builds are available for MacOS and Windows at: https://github.com/pcarion/cleric/releases
 
 ## How It Works
 
