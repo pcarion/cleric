@@ -73,6 +73,14 @@ If you get the "cleric is damaged and can't be opened. You should move it to the
 
 Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric.app`.
 
+## Changelog
+
+- `0.2.0` - 2025-01-14
+   - add help text when hovering over the toolbar buttons
+
+- `0.1.0` - 2025-01-09
+   - Initial release
+
 ## Coming Soon
 
 - [ ] Add a button to test a server directly from Cleric and retrieve the list of tools/prompt/resources exposed by the server.

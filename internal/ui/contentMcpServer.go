@@ -94,6 +94,8 @@ func (c *ContentMcpServer) content() *MainContent {
 			} else {
 				t.Append(NewToolbarClaudeAction(c.claudeAction(), statusLabel))
 				t.Append(widget.NewToolbarSpacer())
+				t.Append(NewToolbarItemWithHover(theme.VisibilityIcon(), func() {
+				}, mkHoverable("Start the MCP inspector", statusLabel)))
 				t.Append(NewToolbarItemWithHover(theme.ContentCutIcon(), func() {
 					c.DeleteMcpServer(c.mcpServer.Uuid)
 				}, mkHoverable("Delete MCP server", statusLabel)))
