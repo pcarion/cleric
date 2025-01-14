@@ -17,6 +17,7 @@ import (
 )
 
 func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerDescription) {
+	launchUrl := ""
 	inspectorArgs := []string{}
 	inspectorArgs = append(inspectorArgs, "@modelcontextprotocol/inspector")
 	inspectorArgs = mcpServer.Configuration.GetMcpInspectorArgs(inspectorArgs)
@@ -26,10 +27,20 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 	outputText := widget.NewTextGrid()
 	outputText.SetText(">> MCP inspector for " + mcpServer.Name + ":\n")
 
+	// add button to launch the inspector URL
+	launchButton := widget.NewButton("Launch Browser for MCP Inspector", func() {
+		if launchUrl != "" {
+			open.Run(launchUrl)
+		}
+	})
+
+	// make the launch button visible only if the URL is not empty
+	launchButton.Hide()
+
 	// Create dialog with output and kill button
-	content := container.NewBorder(nil, nil, nil, nil,
+	content := container.NewBorder(nil, launchButton, nil, nil,
 		container.NewVScroll(outputText))
-	d := dialog.NewCustom("MCP Inspector Output", "Close", content, window)
+	d := dialog.NewCustom("MCP Inspector Output", "Stop & Close", content, window)
 	d.Resize(fyne.NewSize(600, 400))
 	d.Show()
 
@@ -38,7 +49,10 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 		cmdRunner, err := runCommand("npx", inspectorArgs, func(line string) {
 			outputText.SetText(outputText.Text() + line + "\n")
 		}, func(url string) {
-			open.Run(url)
+			launchUrl = url
+			// change the button text
+			launchButton.SetText("Launch Browser: " + url)
+			launchButton.Show()
 		})
 		if err != nil {
 			outputText.SetText(outputText.Text() + fmt.Sprintf("Error running inspector: %v\n", err))
@@ -60,6 +74,7 @@ type CommandRunner struct {
 }
 
 func runCommand(name string, args []string, onOutput func(line string), onUrl func(url string)) (*CommandRunner, error) {
+	fmt.Println("@@ runCommand", name, args)
 	cmd := exec.Command(name, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
