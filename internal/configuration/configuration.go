@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -111,4 +112,20 @@ func getClericListMcpServersPath() string {
 	path := filepath.Join(homeDir, ".cleric.json")
 
 	return path
+}
+
+func (s *McpServerConfiguration) GetMcpInspectorArgs(inspectorArgs []string) []string {
+	args := []string{}
+	args = append(args, inspectorArgs...)
+	if s.Env != nil {
+		for key, value := range s.Env {
+			args = append(args, "-e")
+			args = append(args, fmt.Sprintf("%s=%s", key, value))
+		}
+	}
+	args = append(args, s.Command)
+	if s.Args != nil {
+		args = append(args, s.Args...)
+	}
+	return args
 }

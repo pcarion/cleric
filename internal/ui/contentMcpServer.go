@@ -83,19 +83,24 @@ func (c *ContentMcpServer) content() *MainContent {
 	return &MainContent{
 		ContentId: c.mcpServer.Uuid,
 		View: func(window fyne.Window) fyne.CanvasObject {
+			statusLabel := widget.NewLabel("")
+
 			// create a toolbar with buttons
 			// 2 different toolbars for edit mode and visualization mode
 			t := widget.NewToolbar()
 
 			if c.IsEditMode() {
-				t.Append(NewEditToolbar(c.editAction()))
+				t.Append(NewEditToolbar(c.editAction(), statusLabel))
 			} else {
-				t.Append(NewToolbarClaudeAction(c.claudeAction()))
+				t.Append(NewToolbarClaudeAction(c.claudeAction(), statusLabel))
 				t.Append(widget.NewToolbarSpacer())
-				t.Append(widget.NewToolbarAction(theme.ContentCutIcon(), func() {
+				t.Append(NewToolbarItemWithHover(theme.VisibilityIcon(), func() {
+					ShowInspectorDialog(window, c.mcpServer)
+				}, mkHoverable("Start the MCP inspector", statusLabel)))
+				t.Append(NewToolbarItemWithHover(theme.ContentCutIcon(), func() {
 					c.DeleteMcpServer(c.mcpServer.Uuid)
-				}))
-				t.Append(NewEditToolbar(c.editAction()))
+				}, mkHoverable("Delete MCP server", statusLabel)))
+				t.Append(NewEditToolbar(c.editAction(), statusLabel))
 			}
 
 			t.Refresh()
@@ -247,7 +252,7 @@ func (c *ContentMcpServer) content() *MainContent {
 
 			// display the form
 			pageContent := formBuilder.GetContainer()
-			return container.NewBorder(t, nil, nil, nil, container.NewVScroll(pageContent))
+			return container.NewBorder(t, statusLabel, nil, nil, container.NewVScroll(pageContent))
 		},
 	}
 }

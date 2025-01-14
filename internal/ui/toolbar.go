@@ -15,20 +15,29 @@ type ClaudeAction interface {
 // is a toolbar item that allows to send a message to claude
 type ToolbarClaudeAction struct {
 	claudeAction ClaudeAction
+	statusLabel  *widget.Label
 }
 
-func NewToolbarClaudeAction(claudeAction ClaudeAction) *ToolbarClaudeAction {
-	return &ToolbarClaudeAction{claudeAction: claudeAction}
+func NewToolbarClaudeAction(claudeAction ClaudeAction, statusLabel *widget.Label) *ToolbarClaudeAction {
+	return &ToolbarClaudeAction{claudeAction: claudeAction, statusLabel: statusLabel}
 }
 
 func (t *ToolbarClaudeAction) ToolbarObject() fyne.CanvasObject {
 	if t.claudeAction.IsServerInClaude() {
-		return widget.NewButtonWithIcon("Remove from claude", theme.CheckButtonCheckedIcon(), func() {
+		return NewHoverButton(theme.CheckButtonCheckedIcon(), "Remove from claude", func() {
 			t.claudeAction.RemoveFromClaude()
+		}, func() {
+			t.statusLabel.SetText("Remove from the list of claude servers")
+		}, func() {
+			t.statusLabel.SetText("")
 		})
 	} else {
-		return widget.NewButtonWithIcon("Add to claude", theme.CheckButtonIcon(), func() {
+		return NewHoverButton(theme.CheckButtonIcon(), "Add to claude", func() {
 			t.claudeAction.AddToClaude()
+		}, func() {
+			t.statusLabel.SetText("Add to the list of claude servers")
+		}, func() {
+			t.statusLabel.SetText("")
 		})
 	}
 }
@@ -40,21 +49,30 @@ type ToolbarEditAction interface {
 }
 
 type ToolbarEdit struct {
-	action ToolbarEditAction
+	action      ToolbarEditAction
+	statusLabel *widget.Label
 }
 
-func NewEditToolbar(action ToolbarEditAction) *ToolbarEdit {
-	return &ToolbarEdit{action: action}
+func NewEditToolbar(action ToolbarEditAction, statusLabel *widget.Label) *ToolbarEdit {
+	return &ToolbarEdit{action: action, statusLabel: statusLabel}
 }
 
 func (t *ToolbarEdit) ToolbarObject() fyne.CanvasObject {
 	if t.action.IsEditMode() {
-		return widget.NewButtonWithIcon("Exit edit mode", theme.CancelIcon(), func() {
+		return NewHoverButton(theme.CancelIcon(), "Exit edit mode", func() {
 			t.action.CancelEditMode()
+		}, func() {
+			t.statusLabel.SetText("Exit edit mode")
+		}, func() {
+			t.statusLabel.SetText("")
 		})
 	} else {
-		return widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
+		return NewHoverButton(theme.DocumentCreateIcon(), "", func() {
 			t.action.EditMode()
-		}).ToolbarObject()
+		}, func() {
+			t.statusLabel.SetText("Enter edit mode")
+		}, func() {
+			t.statusLabel.SetText("")
+		})
 	}
 }
