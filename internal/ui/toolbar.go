@@ -27,7 +27,7 @@ func (t *ToolbarClaudeAction) ToolbarObject() fyne.CanvasObject {
 		return NewHoverButton(theme.CheckButtonCheckedIcon(), "Remove from claude", func() {
 			t.claudeAction.RemoveFromClaude()
 		}, func() {
-			t.statusLabel.SetText("Remove from the list of claude servers")
+			t.statusLabel.SetText("Remove from the list of claude servers in claude_desktop_config.json")
 		}, func() {
 			t.statusLabel.SetText("")
 		})
@@ -35,7 +35,7 @@ func (t *ToolbarClaudeAction) ToolbarObject() fyne.CanvasObject {
 		return NewHoverButton(theme.CheckButtonIcon(), "Add to claude", func() {
 			t.claudeAction.AddToClaude()
 		}, func() {
-			t.statusLabel.SetText("Add to the list of claude servers")
+			t.statusLabel.SetText("Add to the list of claude servers in claude_desktop_config.json")
 		}, func() {
 			t.statusLabel.SetText("")
 		})
