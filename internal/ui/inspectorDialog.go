@@ -16,8 +16,16 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
+type SetCmdRunner func(cmdRunner *CommandRunner, err error)
+type SetLaunchUrl func(url string)
+type AddOutputLine func(line string)
+
 func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerDescription) {
-	launchUrl := ""
+
+	var cmdRunner *CommandRunner
+	var launchUrl string = ""
+	var startButton, launchButton *widget.Button
+
 	inspectorArgs := []string{}
 	inspectorArgs = append(inspectorArgs, "@modelcontextprotocol/inspector")
 	inspectorArgs = mcpServer.Configuration.GetMcpInspectorArgs(inspectorArgs)
@@ -28,28 +36,33 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 
 	// Create output text widget and dialog
 	outputText := widget.NewTextGrid()
-	outputText.SetText(">> MCP inspector for " + mcpServer.Name + ":\n")
+	outputText.SetText("")
 
 	// add button to launch the inspector URL
-	launchButton := widget.NewButton("Launch Browser for MCP Inspector", func() {
+	launchButton = widget.NewButton("Launch Browser for MCP Inspector", func() {
 		if launchUrl != "" {
 			open.Run(launchUrl)
+			if launchButton != nil {
+				launchButton.Hide()
+			}
 		}
 	})
 
 	// make the launch button visible only if the URL is not empty
 	launchButton.Hide()
 
-	// Create dialog with output and kill button
-	content := container.NewBorder(inspectorArgsLabel, launchButton, nil, nil,
-		container.NewVScroll(outputText))
-	d := dialog.NewCustom("MCP Inspector Output", "Stop & Close", content, window)
-	d.Resize(fyne.NewSize(600, 400))
-	d.Show()
-
-	// Run command in goroutine
-	go func() {
-		cmdRunner, err := runCommand("npx", inspectorArgs, func(line string) {
+	startButton = widget.NewButton("Start MCP Inspector", func() {
+		doRunCommand("npx", inspectorArgs, func(theCmdRunner *CommandRunner, err error) {
+			cmdRunner = theCmdRunner
+			if err != nil {
+				// show Dialog with error
+				dialog.ShowError(err, window)
+				return
+			}
+			if startButton != nil {
+				startButton.Hide()
+			}
+		}, func(line string) {
 			outputText.SetText(outputText.Text() + line + "\n")
 		}, func(url string) {
 			launchUrl = url
@@ -57,16 +70,37 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 			launchButton.SetText("Launch Browser: " + url)
 			launchButton.Show()
 		})
+	})
+
+	// create a vertical box with the start button and the launch button
+	// only one button is visible at a time
+	buttons := container.NewVBox(startButton, launchButton)
+
+	// Create dialog with output and kill button
+	content := container.NewBorder(inspectorArgsLabel, buttons, nil, nil,
+		container.NewVScroll(outputText))
+	d := dialog.NewCustom("MCP Inspector", "Stop & Close the MCP Inspector", content, window)
+	d.Resize(fyne.NewSize(600, 400))
+	d.Show()
+
+	d.SetOnClosed(func() {
+		cmdRunner.Kill()
+
+		// display dialog box to tell the userr to close the browser
+		dialog.ShowInformation("MCP Inspector", "Please close the browser to fullystop the MCP Inspector", window)
+	})
+}
+
+func doRunCommand(name string, args []string, onSetCmdRunner SetCmdRunner, onOutput AddOutputLine, onUrl SetLaunchUrl) {
+	// Run command in goroutine
+	go func() {
+		cmdRunner, err := runCommand(name, args, onOutput, onUrl)
 		if err != nil {
-			outputText.SetText(outputText.Text() + fmt.Sprintf("Error running inspector: %v\n", err))
+			onSetCmdRunner(nil, err)
 			return
 		}
-		d.SetOnClosed(func() {
-			cmdRunner.Kill()
-		})
-
+		onSetCmdRunner(cmdRunner, nil)
 		cmdRunner.cmd.Wait()
-		outputText.SetText(outputText.Text() + "Process completed.\n")
 	}()
 }
 

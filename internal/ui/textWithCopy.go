@@ -3,6 +3,7 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -13,13 +14,10 @@ func NewTextWithCopy(text string, window fyne.Window) *fyne.Container {
 	label.SetText(text)
 	label.Wrapping = fyne.TextWrapWord
 
-	// button := widget.NewButtonWithIcon("", theme.ContentCopyIcon(), func() {
-	// 	window.Clipboard().SetContent(label.Text)
-	// })
-	content := container.NewHBox(
-		label,
-		// button,
-	)
+	button := widget.NewButtonWithIcon("", theme.ContentCopyIcon(), func() {
+		window.Clipboard().SetContent(label.Text)
+	})
+	content := container.NewBorder(nil, nil, nil, button, label)
 
 	return content
 }
