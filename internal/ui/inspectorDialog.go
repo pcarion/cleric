@@ -23,6 +23,9 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 	inspectorArgs = mcpServer.Configuration.GetMcpInspectorArgs(inspectorArgs)
 	fmt.Println(strings.Join(inspectorArgs, " "))
 
+	// create a label with copy to hold the inspector args
+	inspectorArgsLabel := NewTextWithCopy(fmt.Sprintf("npx %s", strings.Join(inspectorArgs, " ")), window)
+
 	// Create output text widget and dialog
 	outputText := widget.NewTextGrid()
 	outputText.SetText(">> MCP inspector for " + mcpServer.Name + ":\n")
@@ -38,7 +41,7 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 	launchButton.Hide()
 
 	// Create dialog with output and kill button
-	content := container.NewBorder(nil, launchButton, nil, nil,
+	content := container.NewBorder(inspectorArgsLabel, launchButton, nil, nil,
 		container.NewVScroll(outputText))
 	d := dialog.NewCustom("MCP Inspector Output", "Stop & Close", content, window)
 	d.Resize(fyne.NewSize(600, 400))
