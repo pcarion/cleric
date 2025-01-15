@@ -72,7 +72,7 @@ func (s *SideMenu) refreshSideMenuData() {
 	// use the mcp servers as the data
 	data := make([]menuItem, 0, 2+len(s.mcpServers))
 	// add the welcome item
-	data = append(data, NewContentWelcome(s.myApp, s.version).menuItem())
+	data = append(data, NewContentWelcome(s.myApp, s.window, s.version).menuItem())
 
 	// create the content for each mcp server
 	for _, server := range s.mcpServers {

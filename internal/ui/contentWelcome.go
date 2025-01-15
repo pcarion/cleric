@@ -1,23 +1,32 @@
 package ui
 
 import (
+	"errors"
+	"net/http"
 	"net/url"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/hashicorp/go-version"
 )
 
 type ContentWelcome struct {
-	myApp   fyne.App
-	version string
+	window             fyne.Window
+	myApp              fyne.App
+	version            string
+	buttonCheckVersion *widget.Button
 }
 
-func NewContentWelcome(myApp fyne.App, version string) *ContentWelcome {
-	return &ContentWelcome{myApp: myApp, version: version}
+func NewContentWelcome(myApp fyne.App, window fyne.Window, version string) *ContentWelcome {
+	return &ContentWelcome{myApp: myApp, window: window, version: version}
 }
 
 func (c *ContentWelcome) menuItem() menuItem {
@@ -65,6 +74,11 @@ MIT
 				}()
 			})
 
+			checkversion := widget.NewButton("Check version", func() {
+				go c.checkVersion()
+			})
+			c.buttonCheckVersion = checkversion
+
 			settings := widget.NewLabel("Appearance")
 			settings.Alignment = fyne.TextAlignCenter
 			settings.TextStyle.Bold = true
@@ -87,7 +101,7 @@ MIT
 			cont := container.NewVBox(
 				container.NewCenter(img),
 				container.NewCenter(richhead),
-				container.NewCenter(container.NewHBox(githubbutton)),
+				container.NewCenter(container.NewHBox(githubbutton, checkversion)),
 			)
 			mainContentContainer := container.NewBorder(cont, bottom, nil, nil)
 
@@ -102,4 +116,64 @@ func (c *ContentWelcome) label() string {
 
 func (c *ContentWelcome) icon() fyne.Resource {
 	return theme.HomeIcon()
+}
+
+func (c *ContentWelcome) checkVersion() {
+	c.buttonCheckVersion.Disable()
+	defer c.buttonCheckVersion.Enable()
+	errInvalidVersion := errors.New("invalid version " + c.version)
+
+	versionCurrent, err := version.NewVersion(c.version)
+	if err != nil {
+		dialog.ShowError(errInvalidVersion, c.window)
+		return
+	}
+	errRedirectChecker := errors.New("redirect")
+	errVersionGet := errors.New("failed to get version info - check your internet connection")
+
+	req, err := http.NewRequest("GET", "https://github.com/pcarion/cleric/releases/latest", nil)
+	if err != nil {
+		dialog.ShowError(errVersionGet, c.window)
+		return
+	}
+
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return errRedirectChecker
+		},
+	}
+
+	response, err := client.Do(req)
+	if err != nil && !errors.Is(err, errRedirectChecker) {
+		dialog.ShowError(errVersionGet, c.window)
+		return
+	}
+
+	defer response.Body.Close()
+
+	if errors.Is(err, errRedirectChecker) {
+		responceUrl, err := response.Location()
+		if err != nil {
+			dialog.ShowError(errVersionGet, c.window)
+			return
+		}
+		str := strings.Trim(filepath.Base(responceUrl.Path), "v")
+		versionRelease, err := version.NewVersion(str)
+		if err != nil {
+			dialog.ShowError(errVersionGet, c.window)
+			return
+		}
+
+		switch {
+		case versionRelease.GreaterThan(versionCurrent):
+			dialog.ShowInformation("Version checker", "There is a new version available on Github: "+versionRelease.String(), c.window)
+			return
+		default:
+			dialog.ShowInformation("Version checker", "No new version", c.window)
+			return
+		}
+	}
+
+	dialog.ShowError(errVersionGet, c.window)
 }

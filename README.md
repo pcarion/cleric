@@ -77,6 +77,7 @@ Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric
 
 - `0.2.0` - 2025-01-14
    - all toolbar button to start the MCP Inspector
+   - add version checker on Welcome page
    - add help text when hovering over the toolbar buttons
 
 - `0.1.0` - 2025-01-09
@@ -86,7 +87,6 @@ Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric
 
 - [ ] Add a button to open the Claude Desktop configuration file in the user's default text editor.
 - [ ] Add a button to open the Cleric configuration file in the user's default text editor.
-- [ ] Add a button to check if there is a new version of Cleric available
 
 # Development
 

@@ -111,7 +111,6 @@ type CommandRunner struct {
 }
 
 func runCommand(name string, args []string, onOutput func(line string), onUrl func(url string)) (*CommandRunner, error) {
-	fmt.Println("@@ runCommand", name, args)
 	cmd := exec.Command(name, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
