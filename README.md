@@ -36,6 +36,7 @@ Cleric manages two configuration files:
 - Automatically preserves server configurations when making changes
 - Syncs with Claude Desktop: Any servers you manually add to Claude Desktop will be automatically added to your Cleric server list on next launch
 - Real-time saving: Changes are saved automatically as you make them
+- Test any server by launching the MCP Inspector
 
 
 ## How to use
@@ -55,6 +56,10 @@ The `✄` button will remove the server from both your personal server list and 
 The `🖊️` button will allow you to edit the server information:
 
 ![MCP server information](assets/cleric-screenshot-02.png)
+
+The `👁️` button will allow you to test the server by launching the MCP Inspector:
+
+![MCP server information](assets/cleric-screenshot-03.png)
 
 ## Important Note
 
