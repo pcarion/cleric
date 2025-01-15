@@ -33,3 +33,16 @@ jobs:
           README.md
           cleric.app
         retention-days: 2
+
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      if: env.CLERIC_VERSION != ''
+      with:
+        name: cleric_${{ env.CLERIC_VERSION }}_macOS_amd64
+        tag_name: ${{ env.CLERIC_VERSION }}
+        files: |
+          LICENSE
+          README.md
+          cleric.app
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
