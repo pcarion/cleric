@@ -18,6 +18,7 @@ Cleric is a desktop application that helps you manage Model Context Protocol (MC
 
 Builds are available for MacOS and Windows at: https://github.com/pcarion/cleric/releases
 
+> **Note:** The version `0.2.0` is not available for Windows. The API to kill the inspector is not available on Windows. I'll fix this in the next release.
 ## How It Works
 
 Cleric manages two configuration files:
