@@ -14,6 +14,7 @@ func setSysProcAttr(cmd *exec.Cmd) {
 }
 
 func killProcess(cmd *exec.Cmd) {
-	if cmd && cmd.Process != nil {
-	cmd.Process.Kill()
+	if cmd != nil && cmd.Process != nil {
+		cmd.Process.Kill()
+	}
 }
