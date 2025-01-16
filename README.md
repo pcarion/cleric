@@ -82,6 +82,9 @@ Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric
 
 ## Changelog
 
+- `0.4.0` - 2025-01-17
+   - start using light theme
+
 - `0.3.0` - 2025-01-16
    - fix issue with MCP Inspector on Windows - the Windows version has NOT been tested yet. Any feedback is welcome.
 

@@ -16,7 +16,7 @@ var (
 
 func main() {
 	myApp := app.New()
-	ui.SetDarkTheme(myApp)
+	ui.SetLightTheme(myApp)
 	myWindow := myApp.NewWindow("Claude Mcp Servers")
 	var currentMainContent *ui.MainContent = nil
 
