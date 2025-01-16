@@ -18,7 +18,8 @@ Cleric is a desktop application that helps you manage Model Context Protocol (MC
 
 Builds are available for MacOS and Windows at: https://github.com/pcarion/cleric/releases
 
-> **Note:** The version `0.2.0` is not available for Windows. The API to kill the inspector is not available on Windows. I'll fix this in the next release.
+> **Note:** The version `0.3.0` is available for Windows but has not been tested on Windows. Any feedback is welcome. The code related to starting and stopping the MCP Inspector should be looked at.
+
 ## How It Works
 
 Cleric manages two configuration files:
@@ -80,6 +81,9 @@ If you get the "cleric is damaged and can't be opened. You should move it to the
 Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric.app`.
 
 ## Changelog
+
+- `0.3.0` - 2025-01-16
+   - fix issue with MCP Inspector on Windows - the Windows version has NOT been tested yet. Any feedback is welcome.
 
 - `0.2.0` - 2025-01-14
    - all toolbar button to start the MCP Inspector
