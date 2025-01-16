@@ -12,3 +12,8 @@ func setSysProcAttr(cmd *exec.Cmd) {
 		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP,
 	}
 }
+
+func killProcess(cmd *exec.Cmd) {
+	if cmd && cmd.Process != nil {
+	cmd.Process.Kill()
+}

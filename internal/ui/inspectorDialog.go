@@ -5,7 +5,6 @@ import (
 	"io"
 	"os/exec"
 	"strings"
-	"syscall"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -192,7 +191,7 @@ func (cr *CommandRunner) Kill() {
 	cr.stderr.Close()
 	if cr.cmd != nil && cr.cmd.Process != nil {
 		// Kill the entire process group
-		syscall.Kill(-cr.cmd.Process.Pid, syscall.SIGKILL)
+		killProcess(cr.cmd)
 		cr.cmd.Process.Kill()
 	}
 }
