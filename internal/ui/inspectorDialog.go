@@ -26,7 +26,7 @@ func ShowInspectorDialog(window fyne.Window, mcpServer *configuration.McpServerD
 	var startButton, launchButton *widget.Button
 
 	inspectorArgs := []string{}
-	inspectorArgs = append(inspectorArgs, "@modelcontextprotocol/inspector")
+	inspectorArgs = append(inspectorArgs, "@modelcontextprotocol/inspector@latest")
 	inspectorArgs = mcpServer.Configuration.GetMcpInspectorArgs(inspectorArgs)
 	fmt.Println(strings.Join(inspectorArgs, " "))
 
