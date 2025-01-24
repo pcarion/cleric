@@ -58,7 +58,7 @@ The `🖊️` button will allow you to edit the server information:
 
 ![MCP server information](assets/cleric-screenshot-02.png)
 
-The `👁️` button will allow you to test the server by launching the MCP Inspector:
+The `👁️` button will show you the command to start the MCP Inspector in the terminal:
 
 ![MCP server information](assets/cleric-screenshot-03.png)
 
@@ -81,6 +81,9 @@ If you get the "cleric is damaged and can't be opened. You should move it to the
 Launch Terminal and then issue the following command: `xattr -cr /path/to/cleric.app`.
 
 ## Changelog
+
+- `0.5.0` - 2025-01-25
+   - remove capabilities to start the MCP Inspector. Instead, display the command to start the MCP Inspector in a dialog with a copy button to copy the command to the clipboard.
 
 - `0.4.0` - 2025-01-17
    - start using light theme

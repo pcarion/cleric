@@ -6,7 +6,6 @@ require (
 	fyne.io/fyne/v2 v2.5.3
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-version v1.7.0
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 )
 
 require (

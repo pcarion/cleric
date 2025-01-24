@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -114,18 +115,45 @@ func getClericListMcpServersPath() string {
 	return path
 }
 
-func (s *McpServerConfiguration) GetMcpInspectorArgs(inspectorArgs []string) []string {
+// enum MCP version
+type McpVersion string
+
+const (
+	McpVersion030 McpVersion = "0.3.0"
+	McpVersion031 McpVersion = "0.3.1"
+)
+
+func (s *McpServerConfiguration) HasEnvironmentVariables() bool {
+	return len(s.Env) > 0
+}
+
+func (s *McpServerConfiguration) GetMcpInspectorArgs(mcpVersion McpVersion) []string {
 	args := []string{}
-	args = append(args, inspectorArgs...)
-	if s.Env != nil {
-		for key, value := range s.Env {
-			args = append(args, "-e")
-			args = append(args, fmt.Sprintf("%s=%s", key, value))
+
+	args = append(args, "npx")
+	args = append(args, "-y")
+	args = append(args, "@modelcontextprotocol/inspector@latest")
+
+	if mcpVersion == McpVersion031 {
+		if s.Env != nil {
+			for key, value := range s.Env {
+				args = append(args, "-e")
+				args = append(args, fmt.Sprintf("%s=\"%s\"", key, value))
+			}
 		}
 	}
+	// we add the command
 	args = append(args, s.Command)
-	if s.Args != nil {
-		args = append(args, s.Args...)
+
+	// we add the args
+	// we iterate over the args and add them to the args list
+	for _, arg := range s.Args {
+		// if an arg contains a space, we add it as a string
+		if strings.Contains(arg, " ") {
+			args = append(args, fmt.Sprintf("\"%s\"", arg))
+		} else {
+			args = append(args, arg)
+		}
 	}
 	return args
 }
